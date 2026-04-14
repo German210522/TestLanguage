@@ -125,6 +125,7 @@ export default function Dashboard({ currentUser, onLogout }) {
 
   const handleToggle = async id => { await toggleUserActive(id); reload(); };
   const handleDeleteUser = async id => {
+    if (currentUser.id !== "superadmin") { alert("Solo el Super Administrador puede eliminar usuarios."); return; }
     if (id === "superadmin" || id === "1") { alert("No puedes eliminar al Super Administrador."); return; }
     if (id === currentUser.id) { alert("No puedes eliminarte a ti mismo."); return; }
     if (!confirm("¿Eliminar este usuario?")) return;
@@ -425,7 +426,7 @@ export default function Dashboard({ currentUser, onLogout }) {
                                   <button className={u.active ? "btn-sm-neutral" : "btn-sm-success"} onClick={() => handleToggle(u.id)}>
                                     {u.active ? "Desactivar" : "Activar"}
                                   </button>
-                                  {u.id !== currentUser.id && (
+                                  {u.id !== currentUser.id && currentUser.id === "superadmin" && (
                                     <button className="btn-sm-danger" onClick={() => handleDeleteUser(u.id)}>Eliminar</button>
                                   )}
                                 </>
