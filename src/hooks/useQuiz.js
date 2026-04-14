@@ -81,8 +81,8 @@ export function useQuiz() {
   /* ── Iniciar evaluación ─────────────────────────────── */
   const handleStart = (info) => {
     const lastSub = localStorage.getItem("last_sub");
-    if (lastSub && Date.now() - parseInt(lastSub) < 15 * 60 * 1000) {
-      alert("Por seguridad del sistema, debes esperar 15 minutos antes de procesar una nueva evaluación desde este dispositivo.");
+    if (lastSub && Date.now() - parseInt(lastSub) < 60 * 1000) {
+      alert("Por seguridad del sistema, debes esperar 1 minuto antes de procesar una nueva evaluación desde este dispositivo.");
       return;
     }
     setStudentInfo(info);
