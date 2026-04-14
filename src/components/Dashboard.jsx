@@ -6,7 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { getResults, deleteResult, getUsers, addUser, toggleUserActive, deleteUser } from "../utils/storage";
+import { subscribeResults, deleteResult, subscribeUsers, addUser, toggleUserActive, deleteUser } from "../utils/storage";
 import { TOTAL as QUESTIONS_TOTAL } from "../data/questions";
 import { exportResultsCSV } from "../utils/exportCsv";
 import CreditsBar from "./CreditsBar";
@@ -42,13 +42,25 @@ export default function Dashboard({ currentUser, onLogout }) {
   };
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      setResults(await getResults());
-      setUsers(await getUsers());
-      setLoading(false);
-    })();
-  }, [refresh]);
+    let unmounted = false;
+    
+    const unsubResults = subscribeResults((data) => {
+      if (!unmounted) {
+        setResults(data);
+        setLoading(false);
+      }
+    });
+
+    const unsubUsers = subscribeUsers((data) => {
+      if (!unmounted) setUsers(data);
+    });
+
+    return () => {
+      unmounted = true;
+      unsubResults();
+      unsubUsers();
+    };
+  }, []);
 
   /* ── Estadísticas ───────────────────────────────────── */
   const total       = results.length;
@@ -193,7 +205,9 @@ export default function Dashboard({ currentUser, onLogout }) {
               </div>
             </div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button className="btn-primary" onClick={reload} style={{ padding: "9px 18px", fontSize: 13 }}>↻ Actualizar</button>
+              <div style={{ padding: "9px 18px", fontSize: 13, color: "#16a34a", fontWeight: "bold", display: "flex", alignItems: "center" }}>
+                <span style={{ marginRight: 6 }}>●</span> En vivo
+              </div>
               <button 
                 className="btn-sm-danger" 
                 onClick={onLogout} 

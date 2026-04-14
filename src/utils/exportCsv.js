@@ -6,17 +6,23 @@
  * @param {Object[]} results - Array de resultados filtrados
  */
 export function exportResultsCSV(results) {
-  const headers = ["Nombre", "Correo", "Institución", "Municipio", "Punteo", "%", "Calificación", "Fecha"];
-  const rows = results.map(r => [
-    r.name,
-    r.email,
-    r.institution,
-    r.municipality,
-    r.score,
-    r.pct + "%",
-    r.grade,
-    new Date(r.timestamp).toLocaleString("es-GT"),
-  ]);
+  const headers = ["Nombre", "Correo", "Institución", "Municipio", "Punteo", "%", "Calificación", "Fecha", "Hora"];
+  const rows = results.map(r => {
+    const d = new Date(r.timestamp);
+    const fecha = d.toLocaleDateString("es-GT");
+    const hora = d.toLocaleTimeString("es-GT", { hour: "2-digit", minute: "2-digit" });
+    return [
+      r.name,
+      r.email,
+      r.institution,
+      r.municipality,
+      r.score,
+      r.pct + "%",
+      r.grade,
+      fecha,
+      hora
+    ];
+  });
 
   const csv = [headers, ...rows]
     .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))

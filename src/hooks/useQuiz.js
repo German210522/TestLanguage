@@ -35,6 +35,7 @@ export function useQuiz() {
       answers: [...answers],
       timestamp: new Date().toISOString(),
     });
+    localStorage.setItem("last_sub", Date.now().toString());
     setPhase("results");
   }, [answers, studentInfo]);
 
@@ -73,6 +74,11 @@ export function useQuiz() {
 
   /* ── Iniciar evaluación ─────────────────────────────── */
   const handleStart = (info) => {
+    const lastSub = localStorage.getItem("last_sub");
+    if (lastSub && Date.now() - parseInt(lastSub) < 15 * 60 * 1000) {
+      alert("Por seguridad del sistema, debes esperar 15 minutos antes de procesar una nueva evaluación desde este dispositivo.");
+      return;
+    }
     setStudentInfo(info);
     setPhase("quiz");
   };

@@ -11,7 +11,20 @@ import {
   addDoc,
   query,
   orderBy,
+  where,
+  limit,
+  onSnapshot,
 } from "firebase/firestore";
+
+/* ── Hash de Contraseñas (SHA-256) ──────────────────────── */
+export async function hashPassword(pwd) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pwd);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 import { db } from "../firebase";
 
 /* ── Colecciones de Firestore ───────────────────────────── */
@@ -27,8 +40,8 @@ const SUPER_ADMIN_DEFAULT = {
   id:       "superadmin",
   name:     "Super Administrador",
   email:    "safecamgm@gmail.com",
-  username: "safecamgm@gmail.com",   // login con correo
-  password: "German7@",
+  username: "safecamgm@gmail.com",
+  password: "89862ec8c9fec7667622decac563b1ea4397d106d6882fd85d45241b665372a8", // Hash SHA-256
   role:     "admin",
   active:   true,
 };
@@ -38,13 +51,13 @@ const SUPER_ADMIN_DEFAULT = {
    ───────────────────────────────────────────────────────── */
 export async function initDB() {
   try {
-    const snap = await getDocs(collection(db, COLL.USERS));
-    if (snap.empty) {
-      await setDoc(
-        doc(db, COLL.USERS, SUPER_ADMIN_DEFAULT.id),
-        SUPER_ADMIN_DEFAULT
-      );
-    }
+    // Forzar siempre a la cuenta SuperAdmin a usar la contraseña encriptada si alguien intenta sobreescribir u obviar el hash.
+    // Usamos merge: true para no borrar otros campos (si de casualidad hubo cambios de active)
+    await setDoc(
+      doc(db, COLL.USERS, SUPER_ADMIN_DEFAULT.id),
+      SUPER_ADMIN_DEFAULT,
+      { merge: true }
+    );
   } catch (e) {
     console.error("[storage] initDB error:", e);
   }
@@ -64,6 +77,14 @@ export async function getResults() {
     console.error("[storage] getResults error:", e);
     return [];
   }
+}
+
+/** Escucha resultados en tiempo real */
+export function subscribeResults(callback) {
+  const q = query(collection(db, COLL.RESULTS), orderBy("timestamp", "desc"));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map(d => ({ ...d.data(), _docId: d.id })));
+  });
 }
 
 /** Agrega un nuevo resultado de examen */
@@ -92,35 +113,64 @@ export async function deleteResult(docId) {
 export async function getUsers() {
   try {
     const snap = await getDocs(collection(db, COLL.USERS));
-    return snap.docs.map(d => d.data());
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
     console.error("[storage] getUsers error:", e);
     return [];
   }
 }
 
-/** Busca un usuario activo por username o email + contraseña */
-export async function findUser(usernameOrEmail, password) {
-  try {
-    const users = await getUsers();
-    const term  = usernameOrEmail.trim().toLowerCase();
-    return users.find(u =>
-      (u.username?.toLowerCase() === term || u.email?.toLowerCase() === term) &&
-      u.password === password &&
-      u.active
-    ) || null;
-  } catch (e) {
-    console.error("[storage] findUser error:", e);
-    return null;
-  }
+/** Escucha la lista de usuarios en tiempo real */
+export function subscribeUsers(callback) {
+  return onSnapshot(collection(db, COLL.USERS), (snap) => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  });
 }
 
-/** Crea un nuevo usuario */
+/** Busca un usuario activo por username o email + contraseña encriptada (Velocidad <1s) */
+export async function findUser(usernameOrEmail, password) {
+  try {
+    const hashed = await hashPassword(password);
+    const term = usernameOrEmail.trim().toLowerCase();
+    
+    let q = query(
+      collection(db, COLL.USERS),
+      where("username", "==", term),
+      where("password", "==", hashed),
+      where("active", "==", true),
+      limit(1)
+    );
+    let snap = await getDocs(q);
+    
+    if (snap.empty) {
+      q = query(
+        collection(db, COLL.USERS),
+        where("email", "==", term),
+        where("password", "==", hashed),
+        where("active", "==", true),
+        limit(1)
+      );
+      snap = await getDocs(q);
+    }
+
+    if (!snap.empty) {
+      const d = snap.docs[0];
+      return { id: d.id, ...d.data() };
+    }
+  } catch (e) {
+    console.error("[storage] findUser error:", e);
+  }
+  return null;
+}
+
+/** Crea un nuevo usuario encriptando su contraseña */
 export async function addUser(userData) {
   try {
+    const hashedPwd = await hashPassword(userData.password);
     const newUser = {
       id: Date.now().toString(),
       ...userData,
+      password: hashedPwd,
       active: true,
     };
     await setDoc(doc(db, COLL.USERS, newUser.id), newUser);
