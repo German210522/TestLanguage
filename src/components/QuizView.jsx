@@ -124,8 +124,13 @@ export default function QuizView({ qIdx, answers, locked, timeLeft, timesUp, onS
               ))}
             </div>
 
-            {/* Botón manual de avance eliminado a petición para usar flujo 100% automático */}
-          </div>
+            {isLock && qIdx === TOTAL - 1 && (
+              <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+                <button className="btn-primary" onClick={onAdvance}>
+                  Ver resultados →
+                </button>
+              </div>
+            )}
         </div>
       </div>
       <CreditsBar />

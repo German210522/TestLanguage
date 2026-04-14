@@ -23,10 +23,11 @@ export function useQuiz() {
 
   /* ── Guardar resultado y avanzar a results ─────────── */
   const finishRef = useRef(null);
-  finishRef.current = useCallback(async () => {
+  finishRef.current = useCallback(() => {
     const { score, pct } = calcScore(answers, QUESTIONS);
     const grade = getGrade(pct);
-    await addResult({
+    // Ejecutamos en segundo plano sin bloquar la UI
+    addResult({
       id: Date.now().toString(),
       ...studentInfo,
       score,
@@ -58,8 +59,10 @@ export function useQuiz() {
     if (phase !== "quiz" || timesUp) return;
     if (timeLeft <= 0) {
       setTimesUp(true);
-      // No devolvemos clearTimeout aquí para asegurar que se ejecute el auto-avance
-      setTimeout(() => advanceRef.current(), 1500);
+      // Solo auto-avanza si NO es la ultima pregunta
+      if (qIdx < TOTAL - 1) {
+        setTimeout(() => advanceRef.current(), 1500);
+      }
       return;
     }
     const t = setTimeout(() => setTimeLeft(n => n - 1), 1000);
@@ -71,11 +74,12 @@ export function useQuiz() {
     if (locked[qIdx] || timesUp) return;
     setAnswers(prev => { const a = [...prev]; a[qIdx] = optionIndex; return a; });
     setLocked(prev  => { const l = [...prev]; l[qIdx] = true;        return l; });
-    
-    // Auto-avance despues de mostrar la validación visual brevemente
-    setTimeout(() => {
-      advanceRef.current();
-    }, 1500);
+    // Auto-avance despues de mostrar la validación visual, excepto en la ultima pregunta
+    if (qIdx < TOTAL - 1) {
+      setTimeout(() => {
+        advanceRef.current();
+      }, 1500);
+    }
   };
 
   /* ── Iniciar evaluación ─────────────────────────────── */
