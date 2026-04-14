@@ -9,6 +9,7 @@ import {
   setDoc,
   deleteDoc,
   addDoc,
+  updateDoc,
   query,
   orderBy,
   where,
@@ -192,15 +193,15 @@ export async function saveUsers(users) {
 }
 
 /** Activa / desactiva un usuario */
-export async function toggleUserActive(id) {
-  if (id === "superadmin") return; // protegido
+export async function toggleUserActive(id, currentStatus) {
+  if (id === "superadmin") return; 
   try {
-    const ref  = doc(db, COLL.USERS, id);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
-    await setDoc(ref, { ...snap.data(), active: !snap.data().active });
+    const ref = doc(db, COLL.USERS, id);
+    await updateDoc(ref, { active: !currentStatus });
+    console.log(`[storage] User ${id} active status toggled to ${!currentStatus}`);
   } catch (e) {
     console.error("[storage] toggleUserActive error:", e);
+    throw e;
   }
 }
 

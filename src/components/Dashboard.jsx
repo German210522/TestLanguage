@@ -64,10 +64,19 @@ export default function Dashboard({ currentUser, onLogout }) {
       if (!unmounted) setLoading(false);
     });
 
+    // Timeout de seguridad: si después de 12 segundos no hay datos, quitamos el loading para no bloquear al usuario
+    const timeout = setTimeout(() => {
+      if (!unmounted && loading) {
+        setLoading(false);
+        console.warn("[Dashboard] Timeout de carga: mostrando interfaz vacía por lentitud de red.");
+      }
+    }, 12000);
+
     return () => {
       unmounted = true;
       unsubResults();
       unsubUsers();
+      clearTimeout(timeout);
     };
   }, []);
 
@@ -131,7 +140,15 @@ export default function Dashboard({ currentUser, onLogout }) {
     // reload() no es necesario ya que onSnapshot actualizará la tabla automáticamente.
   };
 
-  const handleToggle = async id => { await toggleUserActive(id); reload(); };
+  const handleToggle = async (id) => {
+    const u = users.find((x) => x.id === id);
+    if (!u) return;
+    try {
+      await toggleUserActive(id, u.active);
+    } catch (e) {
+      alert("Error al cambiar estado: " + e.message);
+    }
+  };
   const handleDeleteUser = async id => {
     if (currentUser.id !== "superadmin") { alert("Solo el Super Administrador puede eliminar usuarios."); return; }
     if (id === "superadmin" || id === "1") { alert("No puedes eliminar al Super Administrador."); return; }

@@ -124,10 +124,15 @@ export default function QuizView({ qIdx, answers, locked, timeLeft, timesUp, onS
               ))}
             </div>
 
-            {isLock && qIdx === TOTAL - 1 && (
-              <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
-                <button className="btn-primary" onClick={onAdvance}>
-                  Ver resultados →
+            {/* Botón final: Aparece si se seleccionó respuesta o se acabó el tiempo en la última pregunta */}
+            {(sel !== null || timesUp) && qIdx === TOTAL - 1 && (
+              <div style={{ marginTop: 22, display: "flex", justifyContent: "flex-end", animation: "fadeIn 0.4s ease" }}>
+                <button 
+                  className="btn-primary" 
+                  onClick={onAdvance}
+                  style={{ boxShadow: "0 10px 25px rgba(79, 70, 229, 0.4)", padding: "12px 24px" }}
+                >
+                  Confirmar y Ver Resultados →
                 </button>
               </div>
             )}
