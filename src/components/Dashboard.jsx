@@ -49,10 +49,19 @@ export default function Dashboard({ currentUser, onLogout }) {
         setResults(data);
         setLoading(false);
       }
+    }, (err) => {
+      if (!unmounted) {
+        setLoading(false);
+        if (err.message.includes("permission")) {
+          alert("Error de Permisos: Ve a Firebase Console -> Firestore -> Reglas y pon 'allow read: if true;' en la colección results.");
+        }
+      }
     });
 
     const unsubUsers = subscribeUsers((data) => {
       if (!unmounted) setUsers(data);
+    }, (err) => {
+      if (!unmounted) setLoading(false);
     });
 
     return () => {

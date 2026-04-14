@@ -80,10 +80,13 @@ export async function getResults() {
 }
 
 /** Escucha resultados en tiempo real */
-export function subscribeResults(callback) {
+export function subscribeResults(callback, onError = null) {
   const q = query(collection(db, COLL.RESULTS), orderBy("timestamp", "desc"));
   return onSnapshot(q, (snap) => {
     callback(snap.docs.map(d => ({ ...d.data(), _docId: d.id })));
+  }, (err) => {
+    console.error("[storage] subscribeResults error:", err);
+    if(onError) onError(err);
   });
 }
 
@@ -121,9 +124,12 @@ export async function getUsers() {
 }
 
 /** Escucha la lista de usuarios en tiempo real */
-export function subscribeUsers(callback) {
+export function subscribeUsers(callback, onError = null) {
   return onSnapshot(collection(db, COLL.USERS), (snap) => {
     callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  }, (err) => {
+    console.error("[storage] subscribeUsers error:", err);
+    if(onError) onError(err);
   });
 }
 
