@@ -2,7 +2,11 @@
 // Inicialización de Firebase — las credenciales vienen de variables de entorno Vite
 
 import { initializeApp } from "firebase/app";
-import { initializeFirestore } from "firebase/firestore";
+import { 
+  initializeFirestore, 
+  persistentLocalCache, 
+  persistentMultipleTabManager 
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,10 +19,13 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Forzamos Long Polling e ignoramos propiedades indefinidas para máxima robustez en redes móviles/escolares.
-// Deshabilitamos useFetchStreams para evitar timeouts de 49-60s en conexiones con proxy/firewalls.
+// Forzamos Long Polling y Caché Persistente para máxima robustez.
+// Esto permite que el login sea instantáneo usando datos locales si la red está lenta (~55s).
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
   useFetchStreams: false,
   ignoreUndefinedProperties: true,
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager()
+  })
 });

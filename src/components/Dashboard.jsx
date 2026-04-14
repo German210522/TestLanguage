@@ -24,7 +24,7 @@ function CardChart({ title, children }) {
 }
 
 export default function Dashboard({ currentUser, onLogout }) {
-  const [tab, setTab]           = useState("overview");
+  const [tab, setTab]           = useState(currentUser.role === "admin" ? "overview" : "students");
   const [results, setResults]   = useState([]);
   const [users, setUsers]       = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -37,6 +37,13 @@ export default function Dashboard({ currentUser, onLogout }) {
   const [userSuccess, setUserSuccess] = useState("");
 
   const reload = () => setRefresh(k => k + 1);
+
+  // Redirección forzada si un docente intenta entrar a overview (seguridad UI)
+  useEffect(() => {
+    if (currentUser.role !== "admin" && tab === "overview") {
+      setTab("students");
+    }
+  }, [tab, currentUser.role]);
 
   const lbl = {
     display: "block", fontSize: 11, fontWeight: 700, color: "#374151",
@@ -180,7 +187,7 @@ export default function Dashboard({ currentUser, onLogout }) {
   };
 
   const navItems = [
-    { id: "overview",  icon: "📊", label: "Resumen" },
+    ...(currentUser.role === "admin" ? [{ id: "overview",  icon: "📊", label: "Resumen" }] : []),
     { id: "students",  icon: "👥", label: "Estudiantes" },
     ...(currentUser.role === "admin" ? [{ id: "users", icon: "⚙️", label: "Usuarios" }] : []),
   ];

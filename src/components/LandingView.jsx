@@ -147,19 +147,39 @@ export default function LandingView({ onStart, onOpenAuth }) {
               Comenzar Evaluación →
             </button>
 
-            {/* Enlace de acceso docente (único, al fondo) */}
-            <div style={{ textAlign: "center", marginTop: 18 }}>
+            {/* Enlace de acceso docente (Botón más prominente para móvil) */}
+            <div style={{ textAlign: "center", marginTop: 22 }}>
               <button
                 onClick={onOpenAuth}
                 style={{
-                  background: "none", border: "none", color: "#94a3b8", fontSize: 13,
-                  cursor: "pointer", fontFamily: "'Lato',sans-serif",
-                  transition: "color .2s",
+                  background: "#f8fafc", 
+                  border: "1px solid #e2e8f0", 
+                  color: "#64748b", 
+                  fontSize: 12.5,
+                  padding: "10px 20px",
+                  borderRadius: 14,
+                  cursor: "pointer", 
+                  fontFamily: "'Lato',sans-serif",
+                  transition: "all .2s ease",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontWeight: 600,
+                  boxShadow: "0 2px 4px rgba(0,0,0,.03)"
                 }}
-                onMouseOver={e => e.target.style.color = "#4f46e5"}
-                onMouseOut={e  => e.target.style.color = "#94a3b8"}
+                onMouseOver={e => {
+                  e.currentTarget.style.color = "#4f46e5";
+                  e.currentTarget.style.borderColor = "#c7d2fe";
+                  e.currentTarget.style.background = "#eff6ff";
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.color = "#64748b";
+                  e.currentTarget.style.borderColor = "#e2e8f0";
+                  e.currentTarget.style.background = "#f8fafc";
+                }}
               >
-                🔐 ¿Eres docente o administrador? → Inicia sesión aquí
+                <span>🔐</span>
+                <span>Área de Docentes y Administración</span>
               </button>
             </div>
           </div>

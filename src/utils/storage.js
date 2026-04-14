@@ -6,6 +6,8 @@ import {
   doc,
   getDoc,
   getDocs,
+  getDocsFromCache,
+  getDocsFromServer,
   setDoc,
   deleteDoc,
   addDoc,
@@ -112,10 +114,19 @@ export async function deleteResult(docId) {
    USUARIOS
    ───────────────────────────────────────────────────────── */
 
-/** Obtiene todos los usuarios */
+/** Obtiene todos los usuarios — Prioriza Caché para velocidad instantánea */
 export async function getUsers() {
   try {
-    const snap = await getDocs(collection(db, COLL.USERS));
+    const colRef = collection(db, COLL.USERS);
+    let snap;
+    try {
+      // Intentamos caché primero (< 100ms)
+      snap = await getDocsFromCache(colRef);
+      if (snap.empty) throw new Error("Cache empty");
+    } catch (e) {
+      // Si falla o está vacío, vamos al servidor
+      snap = await getDocs(colRef);
+    }
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
     console.error("[storage] getUsers error:", e);
@@ -136,10 +147,11 @@ export function subscribeUsers(callback, onError = null) {
 /** Busca un usuario activo (Filtrado local para evitar latencia de queries en la nube) */
 export async function findUser(usernameOrEmail, password) {
   try {
-    const hashed = await hashPassword(password);
     const term = usernameOrEmail.trim().toLowerCase();
+    const pwd  = password.trim(); // Trim extra a la contraseña también
+    const hashed = await hashPassword(pwd);
     
-    console.log("[storage] Buscando usuario:", term);
+    console.log("[storage] Buscando usuario (Cache-First):", term);
     
     // Obtenemos todos los usuarios (colección pequeña) para filtrar localmente.
     // Esto es mucho más rápido y resiliente a fallos de conexión que 'where' query.
