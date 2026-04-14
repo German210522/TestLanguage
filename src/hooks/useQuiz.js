@@ -35,7 +35,7 @@ export function useQuiz() {
       answers: [...answers],
       timestamp: new Date().toISOString(),
     });
-    localStorage.setItem("last_sub", Date.now().toString());
+    try { localStorage.setItem("last_sub", Date.now().toString()); } catch(e){}
     setPhase("results");
   }, [answers, studentInfo]);
 
@@ -58,8 +58,9 @@ export function useQuiz() {
     if (phase !== "quiz" || timesUp) return;
     if (timeLeft <= 0) {
       setTimesUp(true);
-      const t = setTimeout(() => advanceRef.current(), 1600);
-      return () => clearTimeout(t);
+      // No devolvemos clearTimeout aquí para asegurar que se ejecute el auto-avance
+      setTimeout(() => advanceRef.current(), 1500);
+      return;
     }
     const t = setTimeout(() => setTimeLeft(n => n - 1), 1000);
     return () => clearTimeout(t);
@@ -70,6 +71,11 @@ export function useQuiz() {
     if (locked[qIdx] || timesUp) return;
     setAnswers(prev => { const a = [...prev]; a[qIdx] = optionIndex; return a; });
     setLocked(prev  => { const l = [...prev]; l[qIdx] = true;        return l; });
+    
+    // Auto-avance despues de mostrar la validación visual brevemente
+    setTimeout(() => {
+      advanceRef.current();
+    }, 1500);
   };
 
   /* ── Iniciar evaluación ─────────────────────────────── */
