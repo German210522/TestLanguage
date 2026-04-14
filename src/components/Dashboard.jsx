@@ -125,11 +125,10 @@ export default function Dashboard({ currentUser, onLogout }) {
     setUserErr("");
     if (!newUser.name || !newUser.username || !newUser.password) { setUserErr("Completa todos los campos."); return; }
     if (newUser.password.length < 6) { setUserErr("Contraseña mínima: 6 caracteres."); return; }
-    const all = await getUsers();
-    if (all.find(u => u.username === newUser.username)) { setUserErr("Ese usuario ya existe."); return; }
+    if (users.find(u => u.username === newUser.username)) { setUserErr("Ese usuario ya existe."); return; }
     await addUser(newUser);
     setNewUser({ name: "", username: "", password: "", role: "docente" });
-    reload();
+    // reload() no es necesario ya que onSnapshot actualizará la tabla automáticamente.
   };
 
   const handleToggle = async id => { await toggleUserActive(id); reload(); };
