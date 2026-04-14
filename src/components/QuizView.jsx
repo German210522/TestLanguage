@@ -136,6 +136,7 @@ export default function QuizView({ qIdx, answers, locked, timeLeft, timesUp, onS
                 </button>
               </div>
             )}
+          </div>
         </div>
       </div>
       <CreditsBar />

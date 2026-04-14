@@ -1,0 +1,32 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+[31mx[39m Build failed in 735ms
+[31merror during build:
+[31m[vite:esbuild] Transform failed with 2 errors:
+C:/Users/German/Documents/Proyectos personales/Evaluaciones JJ/evaluacion-lenguaje/src/components/QuizView.jsx:142:6: ERROR: Unexpected closing fragment tag does not match opening "div" tag
+C:/Users/German/Documents/Proyectos personales/Evaluaciones JJ/evaluacion-lenguaje/src/components/QuizView.jsx:145:0: ERROR: Unexpected end of file before a closing fragment tag[31m
+file: [36mC:/Users/German/Documents/Proyectos personales/Evaluaciones JJ/evaluacion-lenguaje/src/components/QuizView.jsx:142:6[31m
+[33m
+[33mUnexpected closing fragment tag does not match opening "div" tag[33m
+140|        </div>
+141|        <CreditsBar />
+142|      </>
+   |        ^
+143|    );
+144|  }
+
+[33mUnexpected end of file before a closing fragment tag[33m
+143|    );
+144|  }
+145|  
+   |  ^
+[31m
+    at failureErrorWithLog (C:\Users\German\Documents\Proyectos personales\Evaluaciones JJ\evaluacion-lenguaje\node_modules\esbuild\lib\main.js:1472:15)
+    at C:\Users\German\Documents\Proyectos personales\Evaluaciones JJ\evaluacion-lenguaje\node_modules\esbuild\lib\main.js:755:50
+    at responseCallbacks.<computed> (C:\Users\German\Documents\Proyectos personales\Evaluaciones JJ\evaluacion-lenguaje\node_modules\esbuild\lib\main.js:622:9)
+    at handleIncomingPacket (C:\Users\German\Documents\Proyectos personales\Evaluaciones JJ\evaluacion-lenguaje\node_modules\esbuild\lib\main.js:677:12)
+    at Socket.readFromStdout (C:\Users\German\Documents\Proyectos personales\Evaluaciones JJ\evaluacion-lenguaje\node_modules\esbuild\lib\main.js:600:7)
+    at Socket.emit (node:events:519:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)[39m
