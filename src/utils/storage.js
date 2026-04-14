@@ -50,17 +50,16 @@ const SUPER_ADMIN_DEFAULT = {
 /* ─────────────────────────────────────────────────────────
    INICIALIZACIÓN — crea el SuperAdmin si no existe ningún usuario
    ───────────────────────────────────────────────────────── */
+/** Inicializa datos básicos */
 export async function initDB() {
   try {
-    // Forzar siempre a la cuenta SuperAdmin a usar la contraseña encriptada si alguien intenta sobreescribir u obviar el hash.
-    // Usamos merge: true para no borrar otros campos (si de casualidad hubo cambios de active)
-    await setDoc(
-      doc(db, COLL.USERS, SUPER_ADMIN_DEFAULT.id),
-      SUPER_ADMIN_DEFAULT,
-      { merge: true }
-    );
+    const ref = doc(db, COLL.USERS, SUPER_ADMIN_DEFAULT.id);
+    // Usamos setDoc con merge para asegurar el superadmin sin bloquear el hilo principal
+    setDoc(ref, SUPER_ADMIN_DEFAULT, { merge: true })
+      .then(() => console.log("[storage] initDB: SuperAdmin verificado."))
+      .catch(e => console.error("[storage] initDB error:", e));
   } catch (e) {
-    console.error("[storage] initDB error:", e);
+    console.error("[storage] initDB error fatal:", e);
   }
 }
 
@@ -134,36 +133,29 @@ export function subscribeUsers(callback, onError = null) {
   });
 }
 
-/** Busca un usuario activo por username o email + contraseña encriptada (Velocidad <1s) */
+/** Busca un usuario activo (Filtrado local para evitar latencia de queries en la nube) */
 export async function findUser(usernameOrEmail, password) {
   try {
     const hashed = await hashPassword(password);
     const term = usernameOrEmail.trim().toLowerCase();
     
-    let q = query(
-      collection(db, COLL.USERS),
-      where("username", "==", term),
-      where("password", "==", hashed),
-      where("active", "==", true),
-      limit(1)
-    );
-    let snap = await getDocs(q);
+    console.log("[storage] Buscando usuario:", term);
     
-    if (snap.empty) {
-      q = query(
-        collection(db, COLL.USERS),
-        where("email", "==", term),
-        where("password", "==", hashed),
-        where("active", "==", true),
-        limit(1)
-      );
-      snap = await getDocs(q);
-    }
+    // Obtenemos todos los usuarios (colección pequeña) para filtrar localmente.
+    // Esto es mucho más rápido y resiliente a fallos de conexión que 'where' query.
+    const all = await getUsers();
+    
+    const found = all.find(u => 
+      (u.username?.toLowerCase() === term || u.email?.toLowerCase() === term) &&
+      u.password === hashed &&
+      u.active === true
+    );
 
-    if (!snap.empty) {
-      const d = snap.docs[0];
-      return { id: d.id, ...d.data() };
+    if (found) {
+      console.log("[storage] Usuario encontrado con éxito.");
+      return found;
     }
+    console.warn("[storage] Usuario no encontrado o inactivo.");
   } catch (e) {
     console.error("[storage] findUser error:", e);
   }
@@ -180,10 +172,16 @@ export async function addUser(userData) {
       password: hashedPwd,
       active: true,
     };
-    await setDoc(doc(db, COLL.USERS, newUser.id), newUser);
+    console.log("[storage] Guardando nuevo usuario:", newUser.username);
+    // No usamos 'await' aquí para que la UI no se cuelgue si el servidor tarda
+    setDoc(doc(db, COLL.USERS, newUser.id), newUser)
+      .then(() => console.log("[storage] Usuario guardado en la nube."))
+      .catch(err => console.error("[storage] Error guardando usuario:", err));
+    
     return newUser;
   } catch (e) {
     console.error("[storage] addUser error:", e);
+    throw e;
   }
 }
 

@@ -15,8 +15,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Forzamos Long Polling e ignoramos propiedades indefinidas para máxima robustez en redes móviles/escolares
+// Forzamos Long Polling e ignoramos propiedades indefinidas para máxima robustez en redes móviles/escolares.
+// Deshabilitamos useFetchStreams para evitar timeouts de 49-60s en conexiones con proxy/firewalls.
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
+  useFetchStreams: false,
   ignoreUndefinedProperties: true,
 });

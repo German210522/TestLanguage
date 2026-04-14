@@ -33,6 +33,8 @@ export default function Dashboard({ currentUser, onLogout }) {
   const [newUser, setNewUser]   = useState({ name: "", username: "", password: "", role: "docente" });
   const [userErr, setUserErr]   = useState("");
   const [refresh, setRefresh]   = useState(0);
+  const [addingUser, setAddingUser] = useState(false);
+  const [userSuccess, setUserSuccess] = useState("");
 
   const reload = () => setRefresh(k => k + 1);
 
@@ -132,12 +134,22 @@ export default function Dashboard({ currentUser, onLogout }) {
   /* ── Gestión de usuarios ────────────────────────────── */
   const handleAddUser = async () => {
     setUserErr("");
+    setUserSuccess("");
     if (!newUser.name || !newUser.username || !newUser.password) { setUserErr("Completa todos los campos."); return; }
     if (newUser.password.length < 6) { setUserErr("Contraseña mínima: 6 caracteres."); return; }
     if (users.find(u => u.username === newUser.username)) { setUserErr("Ese usuario ya existe."); return; }
-    await addUser(newUser);
-    setNewUser({ name: "", username: "", password: "", role: "docente" });
-    // reload() no es necesario ya que onSnapshot actualizará la tabla automáticamente.
+    
+    setAddingUser(true);
+    try {
+      await addUser(newUser);
+      setUserSuccess("¡Usuario creado con éxito! Se está sincronizando con la nube.");
+      setNewUser({ name: "", username: "", password: "", role: "docente" });
+      setTimeout(() => setUserSuccess(""), 4000); // Limpiar mensaje después de 4s
+    } catch (e) {
+      setUserErr("Fallo al crear usuario: " + e.message);
+    } finally {
+      setAddingUser(false);
+    }
   };
 
   const handleToggle = async (id) => {
@@ -419,7 +431,10 @@ export default function Dashboard({ currentUser, onLogout }) {
                     </div>
                   </div>
                   {userErr && <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "8px 12px", fontSize: 12.5, color: "#dc2626", marginBottom: 12 }}>⚠ {userErr}</div>}
-                  <button className="btn-primary" onClick={handleAddUser}>Crear Usuario</button>
+                  {userSuccess && <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, padding: "8px 12px", fontSize: 12.5, color: "#16a34a", marginBottom: 12 }}>✓ {userSuccess}</div>}
+                  <button className="btn-primary" onClick={handleAddUser} disabled={addingUser}>
+                    {addingUser ? "Guardando..." : "Crear Usuario"}
+                  </button>
                 </div>
 
                 {/* Lista de usuarios */}
