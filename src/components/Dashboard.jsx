@@ -168,9 +168,10 @@ export default function Dashboard({ currentUser, onLogout }) {
             <div className="db-sidebar-label" style={{ fontSize: 11, color: "#475569", marginBottom: 4 }}>Conectado como</div>
             <div className="db-sidebar-label" style={{ color: "white", fontSize: 13, fontWeight: 700, marginBottom: 2 }}>{currentUser.name}</div>
             <div className="db-sidebar-label" style={{ fontSize: 10, color: "#818cf8", textTransform: "uppercase", letterSpacing: .6, marginBottom: 14 }}>{currentUser.role}</div>
-            <button className="btn-ghost" style={{ width: "100%", fontSize: 12, color: "#94a3b8", borderColor: "#1e293b" }} onClick={onLogout}>
+            {/* The logout button text is hidden on mobile inside db-sidebar-label, so we provide an icon explicitly visible on mobile */}
+            <button className="btn-ghost" style={{ width: "100%", fontSize: 12, color: "#94a3b8", borderColor: "#1e293b", padding: "8px 0" }} onClick={onLogout} title="Cerrar sesión">
               <span className="db-sidebar-label">← Cerrar sesión</span>
-              <span style={{ display: "none" }} className="db-sidebar-icon">✕</span>
+              <span className="db-sidebar-icon" style={{ display: "none" }}>🚪</span>
             </button>
           </div>
         </div>
@@ -191,7 +192,16 @@ export default function Dashboard({ currentUser, onLogout }) {
                 {total} examen{total !== 1 ? "es" : ""} registrado{total !== 1 ? "s" : ""}
               </div>
             </div>
-            <button className="btn-primary" onClick={reload} style={{ padding: "9px 18px", fontSize: 13 }}>↻ Actualizar</button>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button className="btn-primary" onClick={reload} style={{ padding: "9px 18px", fontSize: 13 }}>↻ Actualizar</button>
+              <button 
+                className="btn-sm-danger" 
+                onClick={onLogout} 
+                style={{ padding: "9px 16px", fontSize: 13, border: "none", borderRadius: "9px" }}
+              >
+                Cerrar Sesión ✕
+              </button>
+            </div>
           </div>
 
           <div className="db-content" style={{ padding: "24px 28px", paddingBottom: 60 }}>

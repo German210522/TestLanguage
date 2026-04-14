@@ -37,6 +37,20 @@ export default function App() {
   // Inicializar base de datos (crea admin por defecto si no existe)
   useEffect(() => { initDB(); }, []);
 
+  // Cierre de sesión automático al retroceder en el navegador
+  useEffect(() => {
+    if (currentUser) {
+      window.history.pushState({ p: "dashboard" }, "");
+    }
+    const onPop = () => {
+      if (currentUser) {
+        handleLogout();
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [currentUser, handleLogout]);
+
   return (
     <>
       {/* Modal de autenticación — disponible en cualquier fase */}
