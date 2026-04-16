@@ -90,19 +90,64 @@ export function subscribeResults(callback, onError = null) {
   });
 }
 
-/** Agrega un nuevo resultado de examen — Normaliza tipos para Firestore Rules */
+/** Crea un registro "En Proceso" cuando el estudiante inicia el examen */
+export async function createPendingResult(info) {
+  try {
+    const pendingData = {
+      id: Date.now().toString(),
+      name: info.name || "",
+      email: info.email || "",
+      institution: info.institution || "",
+      municipality: info.municipality || "",
+      score: 0,
+      pct: 0,
+      grade: "—",
+      answers: [],
+      status: "En Proceso",
+      timestamp: new Date().toISOString(),
+    };
+    const docRef = await addDoc(collection(db, COLL.RESULTS), pendingData);
+    console.log("[storage] Registro 'En Proceso' creado:", docRef.id);
+    return docRef.id;
+  } catch (e) {
+    console.error("[storage] createPendingResult error:", e);
+    throw e;
+  }
+}
+
+/** Completa un resultado pendiente con datos finales → estado "Finalizado" */
+export async function completeResult(docId, resultData) {
+  try {
+    const updateData = {
+      score: Number(resultData.score || 0),
+      pct: Number(resultData.pct || 0),
+      grade: resultData.grade,
+      answers: resultData.answers,
+      status: "Finalizado",
+      completedAt: new Date().toISOString(),
+    };
+    await updateDoc(doc(db, COLL.RESULTS, docId), updateData);
+    console.log("[storage] Resultado completado:", docId);
+  } catch (e) {
+    console.error("[storage] completeResult error:", e);
+    throw e;
+  }
+}
+
+/** Agrega un resultado completo (fallback si no hay registro pendiente) */
 export async function addResult(result) {
   try {
     const cleanResult = {
       ...result,
       score: Number(result.score || 0),
       pct: Number(result.pct || 0),
+      status: result.status || "Finalizado",
       timestamp: result.timestamp || new Date().toISOString()
     };
     await addDoc(collection(db, COLL.RESULTS), cleanResult);
   } catch (e) {
     console.error("[storage] addResult error:", e);
-    if (e.message.includes("permission")) {
+    if (e.message?.includes("permission")) {
       alert("Error de Sincronización: El servidor rechazó el resultado. Verifica que las reglas de Firestore estén actualizadas.");
     }
     throw e;

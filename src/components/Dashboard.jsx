@@ -87,17 +87,19 @@ export default function Dashboard({ currentUser, onLogout }) {
     };
   }, []);
 
-  /* ── Estadísticas ───────────────────────────────────── */
-  const total       = results.length;
-  const avgPct      = total ? Math.round(results.reduce((a, r) => a + r.pct, 0) / total) : 0;
-  const approved    = results.filter(r => r.pct >= 60).length;
+  /* ── Estadísticas (solo exámenes finalizados) ───────── */
+  const completed   = results.filter(r => (r.status || "Finalizado") === "Finalizado");
+  const inProgress  = results.filter(r => r.status === "En Proceso");
+  const total       = completed.length;
+  const avgPct      = total ? Math.round(completed.reduce((a, r) => a + r.pct, 0) / total) : 0;
+  const approved    = completed.filter(r => r.pct >= 60).length;
   const failed      = total - approved;
   const approvedPct = total ? Math.round((approved / total) * 100) : 0;
 
   /* ── Datos para gráficas ────────────────────────────── */
   const distData = Array.from({ length: 10 }, (_, i) => ({
     name: `${i * 10}–${i === 9 ? 100 : i * 10 + 9}`,
-    count: results.filter(r => r.pct >= i * 10 && (i === 9 ? r.pct <= 100 : r.pct < (i + 1) * 10)).length,
+    count: completed.filter(r => r.pct >= i * 10 && (i === 9 ? r.pct <= 100 : r.pct < (i + 1) * 10)).length,
   }));
 
   const pieApprove = [
@@ -106,15 +108,15 @@ export default function Dashboard({ currentUser, onLogout }) {
   ].filter(d => d.value > 0);
 
   const gradeData = [
-    { name: "Excelente ≥90%",   value: results.filter(r => r.pct >= 90).length,              color: "#16a34a" },
-    { name: "Muy bueno ≥75%",   value: results.filter(r => r.pct >= 75 && r.pct < 90).length, color: "#2563eb" },
-    { name: "Bueno ≥60%",       value: results.filter(r => r.pct >= 60 && r.pct < 75).length, color: "#d97706" },
-    { name: "Regular ≥50%",     value: results.filter(r => r.pct >= 50 && r.pct < 60).length, color: "#ea580c" },
-    { name: "Insuficiente <50%", value: results.filter(r => r.pct <  50).length,               color: "#dc2626" },
+    { name: "Excelente ≥90%",   value: completed.filter(r => r.pct >= 90).length,              color: "#16a34a" },
+    { name: "Muy bueno ≥75%",   value: completed.filter(r => r.pct >= 75 && r.pct < 90).length, color: "#2563eb" },
+    { name: "Bueno ≥60%",       value: completed.filter(r => r.pct >= 60 && r.pct < 75).length, color: "#d97706" },
+    { name: "Regular ≥50%",     value: completed.filter(r => r.pct >= 50 && r.pct < 60).length, color: "#ea580c" },
+    { name: "Insuficiente <50%", value: completed.filter(r => r.pct <  50).length,               color: "#dc2626" },
   ].filter(d => d.value > 0);
 
   const instMap = {};
-  results.forEach(r => {
+  completed.forEach(r => {
     if (!instMap[r.institution]) instMap[r.institution] = { sum: 0, n: 0 };
     instMap[r.institution].sum += r.pct;
     instMap[r.institution].n++;
@@ -246,7 +248,7 @@ export default function Dashboard({ currentUser, onLogout }) {
                 {tab === "overview" ? "Resumen General" : tab === "students" ? "Registros de Estudiantes" : "Gestión de Usuarios"}
               </h2>
               <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 1 }}>
-                {total} examen{total !== 1 ? "es" : ""} registrado{total !== 1 ? "s" : ""}
+                {total} finalizado{total !== 1 ? "s" : ""}{inProgress.length > 0 ? ` · ${inProgress.length} en proceso` : ""}
               </div>
             </div>
             <div style={{ display: "flex", gap: 10 }}>
@@ -270,7 +272,8 @@ export default function Dashboard({ currentUser, onLogout }) {
               <div className="fade-in">
                 <div className="db-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 14, marginBottom: 22 }}>
                   {[
-                    { label: "Total exámenes",   val: total,                            icon: "📝", c: "#4f46e5", bg: "#eef2ff" },
+                    { label: "Finalizados",       val: total,                            icon: "📝", c: "#4f46e5", bg: "#eef2ff" },
+                    { label: "En Proceso",        val: inProgress.length,                icon: "⏳", c: "#d97706", bg: "#fffbeb" },
                     { label: "Promedio general",  val: avgPct + "%",                     icon: "📈", c: "#0891b2", bg: "#ecfeff" },
                     { label: "Aprobados ≥60%",   val: `${approved} (${approvedPct}%)`,  icon: "✅", c: "#16a34a", bg: "#f0fdf4" },
                     { label: "Reprobados <60%",   val: `${failed} (${total ? 100 - approvedPct : 0}%)`, icon: "❌", c: "#dc2626", bg: "#fef2f2" },
@@ -377,14 +380,14 @@ export default function Dashboard({ currentUser, onLogout }) {
                     <table className="data-table">
                       <thead>
                         <tr>
-                          {["#", "Nombre", "Correo", "Institución", "Municipio", "Punteo", "%", "Calificación", "Fecha", ...(currentUser.id === "superadmin" ? [""] : [])].map((h, i) => (
+                          {["#", "Nombre", "Correo", "Institución", "Municipio", "Punteo", "%", "Calificación", "Estatus", "Fecha", ...(currentUser.id === "superadmin" ? [""] : [])].map((h, i) => (
                             <th key={h || `empty_${i}`}>{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {filtered.length === 0 ? (
-                          <tr><td colSpan={10} style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>Sin resultados</td></tr>
+                          <tr><td colSpan={11} style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>Sin resultados</td></tr>
                         ) : filtered.map((r, i) => (
                           <tr key={r._docId || r.id}>
                             <td style={{ color: "#94a3b8", fontSize: 12 }}>{i + 1}</td>
@@ -392,14 +395,37 @@ export default function Dashboard({ currentUser, onLogout }) {
                             <td style={{ color: "#64748b" }}>{r.email}</td>
                             <td>{r.institution}</td>
                             <td>{r.municipality}</td>
-                            <td style={{ fontWeight: 700 }}>{r.score}/{QUESTIONS_TOTAL}</td>
+                            <td style={{ fontWeight: 700 }}>{r.status === "En Proceso" ? "—" : `${r.score}/${QUESTIONS_TOTAL}`}</td>
                             <td>
-                              <span style={{ fontWeight: 800, fontSize: 14, color: r.pct >= 60 ? "#16a34a" : "#dc2626" }}>{r.pct}%</span>
+                              {r.status === "En Proceso"
+                                ? <span style={{ color: "#94a3b8", fontStyle: "italic" }}>—</span>
+                                : <span style={{ fontWeight: 800, fontSize: 14, color: r.pct >= 60 ? "#16a34a" : "#dc2626" }}>{r.pct}%</span>
+                              }
                             </td>
                             <td>
-                              <span style={{ padding: "3px 9px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: r.pct >= 90 ? "#f0fdf4" : r.pct >= 75 ? "#eff6ff" : r.pct >= 60 ? "#fffbeb" : "#fef2f2", color: r.pct >= 90 ? "#16a34a" : r.pct >= 75 ? "#2563eb" : r.pct >= 60 ? "#d97706" : "#dc2626" }}>
-                                {r.grade}
-                              </span>
+                              {r.status === "En Proceso"
+                                ? <span style={{ color: "#94a3b8", fontStyle: "italic" }}>—</span>
+                                : <span style={{ padding: "3px 9px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: r.pct >= 90 ? "#f0fdf4" : r.pct >= 75 ? "#eff6ff" : r.pct >= 60 ? "#fffbeb" : "#fef2f2", color: r.pct >= 90 ? "#16a34a" : r.pct >= 75 ? "#2563eb" : r.pct >= 60 ? "#d97706" : "#dc2626" }}>
+                                    {r.grade}
+                                  </span>
+                              }
+                            </td>
+                            <td>
+                              {(() => {
+                                const st = r.status || "Finalizado";
+                                const isInProg = st === "En Proceso";
+                                return (
+                                  <span style={{
+                                    padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+                                    background: isInProg ? "#fef3c7" : "#dcfce7",
+                                    color: isInProg ? "#b45309" : "#15803d",
+                                    display: "inline-flex", alignItems: "center", gap: 4,
+                                  }}>
+                                    <span style={{ fontSize: 8 }}>{isInProg ? "●" : "●"}</span>
+                                    {st}
+                                  </span>
+                                );
+                              })()}
                             </td>
                             <td style={{ color: "#64748b", fontSize: 11, whiteSpace: "nowrap" }}>
                               {new Date(r.timestamp).toLocaleString("es-GT")}

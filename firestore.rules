@@ -17,7 +17,7 @@ service cloud.firestore {
     match /results/{resultId} {
       allow read: if true;
       allow create: if isValidResult(request.resource.data);
-      allow update: if false;
+      allow update: if isValidResult(request.resource.data);
       allow delete: if true;
     }
 

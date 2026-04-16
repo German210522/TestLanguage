@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { QUESTIONS, TOTAL, TIME_PER_QUESTION } from "../data/questions";
 import { calcScore, getGrade } from "../utils/grading";
-import { addResult } from "../utils/storage";
+import { addResult, createPendingResult, completeResult } from "../utils/storage";
 
 /**
  * Fases posibles de la aplicación:
@@ -21,22 +21,50 @@ export function useQuiz() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showAuth, setShowAuth]   = useState(false);
 
+  // Ref para guardar el ID del documento pendiente ("En Proceso")
+  const pendingDocRef = useRef(null);
+
   /* ── Guardar resultado y avanzar a results ─────────── */
   const finishRef = useRef(null);
   finishRef.current = useCallback(() => {
     const { score, pct } = calcScore(answers, QUESTIONS);
     const grade = getGrade(pct);
-    // Ejecutamos en segundo plano sin bloquar la UI
-    addResult({
-      id: Date.now().toString(),
-      ...studentInfo,
+
+    const resultData = {
       score,
       pct,
       grade: grade.label,
       answers: [...answers],
-      timestamp: new Date().toISOString(),
-    }).catch(e => console.error("[quiz] Error guardando resultado:", e));
+    };
+
+    // Si tenemos un doc pendiente, lo actualizamos a "Finalizado"
+    // Si no (falló la creación), creamos uno nuevo completo
+    if (pendingDocRef.current) {
+      completeResult(pendingDocRef.current, resultData)
+        .then(() => console.log("[quiz] Resultado actualizado a Finalizado"))
+        .catch(e => {
+          console.error("[quiz] Error completando resultado, creando nuevo:", e);
+          // Fallback: crear doc nuevo si la actualización falla
+          addResult({
+            id: Date.now().toString(),
+            ...studentInfo,
+            ...resultData,
+            status: "Finalizado",
+            timestamp: new Date().toISOString(),
+          }).catch(e2 => console.error("[quiz] Error en fallback:", e2));
+        });
+    } else {
+      addResult({
+        id: Date.now().toString(),
+        ...studentInfo,
+        ...resultData,
+        status: "Finalizado",
+        timestamp: new Date().toISOString(),
+      }).catch(e => console.error("[quiz] Error guardando resultado:", e));
+    }
+
     try { localStorage.setItem("last_sub", Date.now().toString()); } catch(e){}
+    pendingDocRef.current = null;
     setPhase("results");
   }, [answers, studentInfo]);
 
@@ -89,6 +117,17 @@ export function useQuiz() {
     }
     setStudentInfo(info);
     setPhase("quiz");
+
+    // Crear registro "En Proceso" en Firestore (visible en tiempo real para admin)
+    createPendingResult(info)
+      .then(docId => {
+        pendingDocRef.current = docId;
+        console.log("[quiz] Registro 'En Proceso' creado:", docId);
+      })
+      .catch(e => {
+        console.warn("[quiz] No se pudo crear registro pendiente:", e);
+        // El examen continúa normal — al finalizar se crea un doc nuevo
+      });
   };
 
   /* ── Reset completo ─────────────────────────────────── */
@@ -98,6 +137,7 @@ export function useQuiz() {
     setAnswers(Array(TOTAL).fill(null));
     setLocked(Array(TOTAL).fill(false));
     setStudentInfo({ name: "", email: "", institution: "", municipality: "" });
+    pendingDocRef.current = null;
   };
 
   /* ── Auth ───────────────────────────────────────────── */
@@ -124,3 +164,4 @@ export function useQuiz() {
     setPhase,
   };
 }
+
