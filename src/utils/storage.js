@@ -90,12 +90,22 @@ export function subscribeResults(callback, onError = null) {
   });
 }
 
-/** Agrega un nuevo resultado de examen */
+/** Agrega un nuevo resultado de examen — Normaliza tipos para Firestore Rules */
 export async function addResult(result) {
   try {
-    await addDoc(collection(db, COLL.RESULTS), result);
+    const cleanResult = {
+      ...result,
+      score: Number(result.score || 0),
+      pct: Number(result.pct || 0),
+      timestamp: result.timestamp || new Date().toISOString()
+    };
+    await addDoc(collection(db, COLL.RESULTS), cleanResult);
   } catch (e) {
     console.error("[storage] addResult error:", e);
+    if (e.message.includes("permission")) {
+      alert("Error de Sincronización: El servidor rechazó el resultado. Verifica que las reglas de Firestore estén actualizadas.");
+    }
+    throw e;
   }
 }
 
@@ -201,6 +211,9 @@ export async function addUser(userData) {
     return newUser;
   } catch (e) {
     console.error("[storage] addUser error:", e);
+    if (e.message.includes("permission")) {
+      alert("Error de Seguridad: No tienes permisos para crear usuarios. Por favor, asegúrate de haber actualizado las reglas de Firestore.");
+    }
     throw e;
   }
 }
