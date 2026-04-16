@@ -35,7 +35,7 @@ export function useQuiz() {
       grade: grade.label,
       answers: [...answers],
       timestamp: new Date().toISOString(),
-    });
+    }).catch(e => console.error("[quiz] Error guardando resultado:", e));
     try { localStorage.setItem("last_sub", Date.now().toString()); } catch(e){}
     setPhase("results");
   }, [answers, studentInfo]);
@@ -59,10 +59,8 @@ export function useQuiz() {
     if (phase !== "quiz" || timesUp) return;
     if (timeLeft <= 0) {
       setTimesUp(true);
-      // Solo auto-avanza si NO es la ultima pregunta
-      if (qIdx < TOTAL - 1) {
-        setTimeout(() => advanceRef.current(), 1500);
-      }
+      // Auto-avanza siempre, incluyendo la última pregunta
+      setTimeout(() => advanceRef.current(), 1500);
       return;
     }
     const t = setTimeout(() => setTimeLeft(n => n - 1), 1000);
@@ -103,8 +101,8 @@ export function useQuiz() {
   };
 
   /* ── Auth ───────────────────────────────────────────── */
-  const handleLogin  = (user) => { setCurrentUser(user); setShowAuth(false); setPhase("dashboard"); };
-  const handleLogout = ()     => { setCurrentUser(null); setPhase("landing"); };
+  const handleLogin  = useCallback((user) => { setCurrentUser(user); setShowAuth(false); setPhase("dashboard"); }, []);
+  const handleLogout = useCallback(()     => { setCurrentUser(null); setPhase("landing"); }, []);
 
   return {
     phase,

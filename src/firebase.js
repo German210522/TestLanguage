@@ -19,11 +19,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Forzamos Long Polling y Caché Persistente para máxima robustez.
-// Esto permite que el login sea instantáneo usando datos locales si la red está lenta (~55s).
+// Caché Persistente para acceso offline inmediato + WebSockets nativos (máxima velocidad).
 export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-  useFetchStreams: false,
   ignoreUndefinedProperties: true,
   localCache: persistentLocalCache({
     tabManager: persistentMultipleTabManager()

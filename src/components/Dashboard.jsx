@@ -32,11 +32,9 @@ export default function Dashboard({ currentUser, onLogout }) {
   const [filterInst, setFilterInst] = useState("");
   const [newUser, setNewUser]   = useState({ name: "", username: "", password: "", role: "docente" });
   const [userErr, setUserErr]   = useState("");
-  const [refresh, setRefresh]   = useState(0);
   const [addingUser, setAddingUser] = useState(false);
   const [userSuccess, setUserSuccess] = useState("");
 
-  const reload = () => setRefresh(k => k + 1);
 
   // Redirección forzada si un docente intenta entrar a overview (seguridad UI)
   useEffect(() => {
@@ -175,15 +173,17 @@ export default function Dashboard({ currentUser, onLogout }) {
     if (!confirm("¿Eliminar este usuario?")) return;
     try {
       await deleteUser(id);
-      reload();
     } catch (e) {
       alert(e.message);
     }
   };
-  const handleDeleteResult = async id => {
+  const handleDeleteResult = async docId => {
     if (!confirm("¿Eliminar este registro?")) return;
-    await deleteResult(id);
-    reload();
+    try {
+      await deleteResult(docId);
+    } catch (e) {
+      alert("Error al eliminar registro: " + e.message);
+    }
   };
 
   const navItems = [
@@ -377,8 +377,8 @@ export default function Dashboard({ currentUser, onLogout }) {
                     <table className="data-table">
                       <thead>
                         <tr>
-                          {["#", "Nombre", "Correo", "Institución", "Municipio", "Punteo", "%", "Calificación", "Fecha", ""].map(h => (
-                            <th key={h}>{h}</th>
+                          {["#", "Nombre", "Correo", "Institución", "Municipio", "Punteo", "%", "Calificación", "Fecha", ...(currentUser.id === "superadmin" ? [""] : [])].map((h, i) => (
+                            <th key={h || `empty_${i}`}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -404,9 +404,11 @@ export default function Dashboard({ currentUser, onLogout }) {
                             <td style={{ color: "#64748b", fontSize: 11, whiteSpace: "nowrap" }}>
                               {new Date(r.timestamp).toLocaleString("es-GT")}
                             </td>
-                            <td>
-                              <button className="btn-sm-danger" onClick={() => handleDeleteResult(r.id)}>✕</button>
-                            </td>
+                            {currentUser.id === "superadmin" && (
+                              <td>
+                                <button className="btn-sm-danger" onClick={() => handleDeleteResult(r._docId)}>✕</button>
+                              </td>
+                            )}
                           </tr>
                         ))}
                       </tbody>

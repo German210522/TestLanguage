@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { useQuiz } from "./hooks/useQuiz";
 import { initDB } from "./utils/storage";
+import { seedDemoData } from "./utils/seedData";
 
 import AuthModal    from "./components/AuthModal";
 import LandingView  from "./components/LandingView";
@@ -34,8 +35,8 @@ export default function App() {
     setPhase,
   } = useQuiz();
 
-  // Inicializar base de datos (crea admin por defecto si no existe)
-  useEffect(() => { initDB(); }, []);
+  // Inicializar base de datos (crea admin por defecto si no existe) + datos demo
+  useEffect(() => { initDB().then(() => seedDemoData()); }, []);
 
   // Cierre de sesión automático al retroceder en el navegador
   useEffect(() => {

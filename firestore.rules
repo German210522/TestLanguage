@@ -1,0 +1,88 @@
+// Firestore Security Rules — ROW/RLS para Evaluación de Lenguaje
+// Despliega con: firebase deploy --only firestore:rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ═══════════════════════════════════════════════════════════
+    // REGLA GLOBAL: Denegar todo por defecto
+    // ═══════════════════════════════════════════════════════════
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // COLECCIÓN: users
+    // ═══════════════════════════════════════════════════════════
+    match /users/{userId} {
+      // Lectura: Cualquier usuario autenticado puede leer para el login
+      // (la app usa autenticación custom con hashes, no Firebase Auth)
+      allow read: if true;
+
+      // Escritura: Solo permitir si el documento tiene campos válidos
+      allow create: if isValidUser(request.resource.data);
+      allow update: if isValidUser(request.resource.data);
+
+      // Eliminar: Solo documentos que NO son el superadmin
+      allow delete: if userId != 'superadmin';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // COLECCIÓN: results
+    // ═══════════════════════════════════════════════════════════
+    match /results/{resultId} {
+      // Lectura: Abierta (los docentes y admin necesitan ver resultados)
+      allow read: if true;
+
+      // Crear: Cualquiera puede enviar su resultado (estudiantes anónimos)
+      // pero debe tener los campos obligatorios
+      allow create: if isValidResult(request.resource.data);
+
+      // Actualizar: No se permite modificar resultados existentes
+      allow update: if false;
+
+      // Eliminar: Permitido (admin lo gestiona desde Dashboard)
+      allow delete: if true;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // FUNCIONES DE VALIDACIÓN (RLS — Row-Level Security)
+    // ═══════════════════════════════════════════════════════════
+
+    // Valida que un usuario tenga los campos mínimos requeridos
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'name', 'username', 'password', 'role', 'active'])
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 100
+        && data.username is string
+        && data.username.size() > 0
+        && data.username.size() <= 120
+        && data.password is string
+        && data.password.size() == 64   // SHA-256 hex = 64 chars
+        && data.role in ['admin', 'docente']
+        && data.active is bool;
+    }
+
+    // Valida que un resultado tenga los campos obligatorios
+    function isValidResult(data) {
+      return data.keys().hasAll(['id', 'name', 'email', 'institution', 'municipality', 'score', 'pct', 'grade', 'timestamp'])
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 100
+        && data.email is string
+        && data.institution is string
+        && data.institution.size() > 0
+        && data.municipality is string
+        && data.municipality.size() > 0
+        && data.score is int
+        && data.score >= 0
+        && data.pct is int
+        && data.pct >= 0
+        && data.pct <= 100
+        && data.grade is string
+        && data.timestamp is string;
+    }
+  }
+}

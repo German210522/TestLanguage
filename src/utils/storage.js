@@ -56,10 +56,8 @@ const SUPER_ADMIN_DEFAULT = {
 export async function initDB() {
   try {
     const ref = doc(db, COLL.USERS, SUPER_ADMIN_DEFAULT.id);
-    // Usamos setDoc con merge para asegurar el superadmin sin bloquear el hilo principal
-    setDoc(ref, SUPER_ADMIN_DEFAULT, { merge: true })
-      .then(() => console.log("[storage] initDB: SuperAdmin verificado."))
-      .catch(e => console.error("[storage] initDB error:", e));
+    await setDoc(ref, SUPER_ADMIN_DEFAULT, { merge: true });
+    console.log("[storage] initDB: SuperAdmin verificado.");
   } catch (e) {
     console.error("[storage] initDB error fatal:", e);
   }
@@ -114,19 +112,13 @@ export async function deleteResult(docId) {
    USUARIOS
    ───────────────────────────────────────────────────────── */
 
-/** Obtiene todos los usuarios — Prioriza Caché para velocidad instantánea */
+/** Obtiene todos los usuarios — Sincroniza con el servidor para evitar datos obsoletos */
 export async function getUsers() {
   try {
     const colRef = collection(db, COLL.USERS);
-    let snap;
-    try {
-      // Intentamos caché primero (< 100ms)
-      snap = await getDocsFromCache(colRef);
-      if (snap.empty) throw new Error("Cache empty");
-    } catch (e) {
-      // Si falla o está vacío, vamos al servidor
-      snap = await getDocs(colRef);
-    }
+    // getDocs es inteligente: intenta traer datos frescos del servidor, 
+    // pero usa el caché si la red falla o es lenta.
+    const snap = await getDocs(colRef);
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
     console.error("[storage] getUsers error:", e);
@@ -181,15 +173,13 @@ export async function addUser(userData) {
     const newUser = {
       id: Date.now().toString(),
       ...userData,
+      email: userData.email || userData.username, // Fallback: username como email para login
       password: hashedPwd,
       active: true,
     };
     console.log("[storage] Guardando nuevo usuario:", newUser.username);
-    // No usamos 'await' aquí para que la UI no se cuelgue si el servidor tarda
-    setDoc(doc(db, COLL.USERS, newUser.id), newUser)
-      .then(() => console.log("[storage] Usuario guardado en la nube."))
-      .catch(err => console.error("[storage] Error guardando usuario:", err));
-    
+    await setDoc(doc(db, COLL.USERS, newUser.id), newUser);
+    console.log("[storage] Usuario guardado en la nube.");
     return newUser;
   } catch (e) {
     console.error("[storage] addUser error:", e);
