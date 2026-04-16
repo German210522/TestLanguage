@@ -112,13 +112,19 @@ export async function deleteResult(docId) {
    USUARIOS
    ───────────────────────────────────────────────────────── */
 
-/** Obtiene todos los usuarios — Sincroniza con el servidor para evitar datos obsoletos */
+/** Obtiene todos los usuarios — Estrategia Híbrida (Caché -> Servidor) */
 export async function getUsers() {
   try {
     const colRef = collection(db, COLL.USERS);
-    // getDocs es inteligente: intenta traer datos frescos del servidor, 
-    // pero usa el caché si la red falla o es lenta.
-    const snap = await getDocs(colRef);
+    let snap;
+    try {
+      // Intentamos caché primero para velocidad instantánea
+      snap = await getDocsFromCache(colRef);
+      if (snap.empty) throw new Error("Cache empty");
+    } catch (e) {
+      // Si el caché está vacío o falla, vamos al servidor
+      snap = await getDocs(colRef);
+    }
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
     console.error("[storage] getUsers error:", e);
@@ -136,30 +142,42 @@ export function subscribeUsers(callback, onError = null) {
   });
 }
 
-/** Busca un usuario activo (Filtrado local para evitar latencia de queries en la nube) */
+/** Busca un usuario para login — 'Instantáneo' (Caché primero, Servidor como respaldo) */
 export async function findUser(usernameOrEmail, password) {
   try {
     const term = usernameOrEmail.trim().toLowerCase();
-    const pwd  = password.trim(); // Trim extra a la contraseña también
+    const pwd  = password.trim();
     const hashed = await hashPassword(pwd);
     
-    console.log("[storage] Buscando usuario (Cache-First):", term);
-    
-    // Obtenemos todos los usuarios (colección pequeña) para filtrar localmente.
-    // Esto es mucho más rápido y resiliente a fallos de conexión que 'where' query.
-    const all = await getUsers();
-    
-    const found = all.find(u => 
+    // 1. Intento Rápido (Caché)
+    const colRef = collection(db, COLL.USERS);
+    let snap;
+    try {
+      snap = await getDocsFromCache(colRef);
+      const found = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(u => 
+        (u.username?.toLowerCase() === term || u.email?.toLowerCase() === term) &&
+        u.password === hashed && u.active === true
+      );
+      if (found) {
+        console.log("[storage] Login instantáneo (desde caché)");
+        return found;
+      }
+    } catch (e) { /* ignore cache error */ }
+
+    // 2. Intento de Respaldo (Servidor) — Por si es un usuario recién creado
+    console.log("[storage] Usuario no en caché, consultando servidor...");
+    snap = await getDocs(colRef);
+    const foundServer = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(u => 
       (u.username?.toLowerCase() === term || u.email?.toLowerCase() === term) &&
-      u.password === hashed &&
-      u.active === true
+      u.password === hashed && u.active === true
     );
 
-    if (found) {
-      console.log("[storage] Usuario encontrado con éxito.");
-      return found;
+    if (foundServer) {
+      console.log("[storage] Login exitoso (desde servidor)");
+      return foundServer;
     }
-    console.warn("[storage] Usuario no encontrado o inactivo.");
+    
+    console.warn("[storage] Credenciales inválidas o usuario inactivo.");
   } catch (e) {
     console.error("[storage] findUser error:", e);
   }

@@ -1,8 +1,4 @@
-// src/utils/seedData.js
-// Datos ficticios de demostración — 10 registros para el dashboard
-// Ejecutar UNA VEZ y luego eliminar como SuperAdmin
-
-import { addDoc, collection } from "firebase/firestore";
+import { doc, setDoc, collection } from "firebase/firestore";
 import { db } from "../firebase";
 
 const DEMO_RESULTS = [
@@ -137,32 +133,29 @@ const DEMO_RESULTS = [
 
 /**
  * Inserta los 10 registros demo en Firestore.
- * Llamar UNA VEZ desde initDB. Los datos se eliminan luego como SuperAdmin.
+ * Usa setDoc con IDs fijos para evitar duplicados y asegurar consistencia.
  */
 export async function seedDemoData() {
-  const SEED_KEY = "demo_data_seeded";
-  // Evitar insertar duplicados
-  try {
-    if (localStorage.getItem(SEED_KEY)) {
-      console.log("[seed] Datos demo ya fueron insertados anteriormente.");
-      return;
-    }
-  } catch (e) { /* localStorage no disponible */ }
-
-  console.log("[seed] Insertando 10 registros de demostración...");
+  const SEED_KEY = "demo_data_seeded_v3"; // Nueva versión del flag
   
   try {
-    const colRef = collection(db, "results");
-    let count = 0;
-    for (const result of DEMO_RESULTS) {
-      await addDoc(colRef, result);
-      count++;
+    if (localStorage.getItem(SEED_KEY)) {
+      return;
     }
-    console.log(`[seed] ✅ ${count} registros demo insertados con éxito.`);
+  } catch (e) {}
+
+  console.log("[seed] Iniciando carga de 10 registros demo...");
+  
+  try {
+    for (const res of DEMO_RESULTS) {
+      // Usamos el id ("demo_01", etc.) como ID del documento en Firestore
+      const docRef = doc(db, "results", res.id);
+      await setDoc(docRef, res);
+    }
     
-    // Marcar como hecho para no repetir
-    try { localStorage.setItem(SEED_KEY, Date.now().toString()); } catch (e) {}
+    console.log("[seed] ✅ 10 registros demo sincronizados con éxito.");
+    try { localStorage.setItem(SEED_KEY, "true"); } catch (e) {}
   } catch (e) {
-    console.error("[seed] Error insertando datos demo:", e);
+    console.error("[seed] ❌ Error en carga demo:", e);
   }
 }
