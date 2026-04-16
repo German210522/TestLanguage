@@ -35,8 +35,11 @@ export default function App() {
     setPhase,
   } = useQuiz();
 
-  // Inicializar base de datos (crea admin por defecto si no existe) + datos demo
-  useEffect(() => { initDB().then(() => seedDemoData()); }, []);
+  // Inicializar base de datos + datos demo (fire-and-forget, no bloquea UI)
+  useEffect(() => {
+    initDB().catch(e => console.warn("[App] initDB falló:", e));
+    seedDemoData().catch(e => console.warn("[App] seedData falló:", e));
+  }, []);
 
   // Cierre de sesión automático al retroceder en el navegador
   useEffect(() => {

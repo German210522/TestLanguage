@@ -1,9 +1,13 @@
 // src/firebase.js
-// Inicialización de Firebase — Sincronización Directa 2.0
-// Se eliminó la persistencia en disco para asegurar integridad total entre dispositivos.
+// Inicialización de Firebase — Caché local + Sync en tiempo real
+// La caché da velocidad instantánea; onSnapshot mantiene datos frescos.
 
 import { initializeApp } from "firebase/app";
-import { initializeFirestore } from "firebase/firestore";
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -16,7 +20,11 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Conexión directa al servidor — Garantiza que todos los dispositivos vean lo mismo al instante.
+// Caché persistente para carga instantánea + soporte multi-pestaña.
+// onSnapshot en Dashboard/storage.js sincroniza datos en tiempo real.
 export const db = initializeFirestore(app, {
-  ignoreUndefinedProperties: true
+  ignoreUndefinedProperties: true,
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager()
+  })
 });

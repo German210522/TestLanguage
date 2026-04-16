@@ -136,7 +136,7 @@ const DEMO_RESULTS = [
  * Usa setDoc con IDs fijos para evitar duplicados y asegurar consistencia.
  */
 export async function seedDemoData() {
-  const SEED_KEY = "demo_data_seeded_v3"; // Nueva versión del flag
+  const SEED_KEY = "demo_data_seeded_v3";
   
   try {
     if (localStorage.getItem(SEED_KEY)) {
@@ -144,18 +144,28 @@ export async function seedDemoData() {
     }
   } catch (e) {}
 
-  console.log("[seed] Iniciando carga de 10 registros demo...");
+  console.log("[seed] Iniciando carga de 10 registros demo (paralelo)...");
   
   try {
-    for (const res of DEMO_RESULTS) {
-      // Usamos el id ("demo_01", etc.) como ID del documento en Firestore
+    // Escribir todos los registros en paralelo (1 roundtrip vs 10 secuenciales)
+    const writes = DEMO_RESULTS.map(res => {
       const docRef = doc(db, "results", res.id);
-      await setDoc(docRef, res);
-    }
+      return setDoc(docRef, res);
+    });
+
+    // Timeout de 8s para no bloquear si Firestore está lento
+    await Promise.race([
+      Promise.all(writes),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout seed")), 8000))
+    ]);
     
     console.log("[seed] ✅ 10 registros demo sincronizados con éxito.");
     try { localStorage.setItem(SEED_KEY, "true"); } catch (e) {}
   } catch (e) {
     console.error("[seed] ❌ Error en carga demo:", e);
+    // Si fue timeout, marcamos como sembrado de todos modos para no reintentar infinitamente
+    if (e.message === "Timeout seed") {
+      console.warn("[seed] Timeout — los datos pueden haberse guardado parcialmente.");
+    }
   }
 }

@@ -1,17 +1,19 @@
+// Firestore Security Rules — Evaluación de Lenguaje
+// Despliega con: firebase deploy --only firestore:rules
+// IMPORTANTE: Firestore deniega por defecto. NO usar catch-all con if false.
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
+    // ── USUARIOS ──────────────────────────────────────────
     match /users/{userId} {
       allow read: if true;
       allow create, update: if isValidUser(request.resource.data);
       allow delete: if userId != 'superadmin';
     }
 
+    // ── RESULTADOS ────────────────────────────────────────
     match /results/{resultId} {
       allow read: if true;
       allow create: if isValidResult(request.resource.data);
@@ -19,6 +21,7 @@ service cloud.firestore {
       allow delete: if true;
     }
 
+    // ── VALIDACIONES ──────────────────────────────────────
     function isValidUser(data) {
       return data.keys().hasAll(['id', 'name', 'username', 'password', 'role', 'active'])
         && data.name is string
@@ -30,7 +33,6 @@ service cloud.firestore {
     }
 
     function isValidResult(data) {
-      // Agregamos 'answers' como opcional pero permitido
       return data.keys().hasAll(['id', 'name', 'email', 'institution', 'municipality', 'score', 'pct', 'grade', 'timestamp'])
         && data.score is number
         && data.pct is number

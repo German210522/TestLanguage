@@ -144,7 +144,7 @@ export function subscribeUsers(callback, onError = null) {
   });
 }
 
-/** Busca un usuario para login — Verificación directa en el servidor */
+/** Busca un usuario para login — Caché primero, servidor como respaldo */
 export async function findUser(usernameOrEmail, password) {
   try {
     const term = usernameOrEmail.trim().toLowerCase();
@@ -152,14 +152,30 @@ export async function findUser(usernameOrEmail, password) {
     const hashed = await hashPassword(pwd);
     
     const colRef = collection(db, COLL.USERS);
-    const snap = await getDocs(colRef); // Pide datos frescos al servidor
+
+    // 1. Intento rápido (caché local — instantáneo)
+    try {
+      const cacheSnap = await getDocsFromCache(colRef);
+      const cached = cacheSnap.docs.map(d => ({ id: d.id, ...d.data() })).find(u =>
+        (u.username?.toLowerCase() === term || u.email?.toLowerCase() === term) &&
+        u.password === hashed && u.active === true
+      );
+      if (cached) {
+        console.log("[storage] Login instantáneo (caché)");
+        return cached;
+      }
+    } catch (e) { /* caché vacío o no disponible — continuamos */ }
+
+    // 2. Respaldo: consulta al servidor (para usuarios recién creados)
+    console.log("[storage] No encontrado en caché, consultando servidor...");
+    const snap = await getDocs(colRef);
     const found = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(u => 
       (u.username?.toLowerCase() === term || u.email?.toLowerCase() === term) &&
       u.password === hashed && u.active === true
     );
 
     if (found) {
-      console.log("[storage] Login exitoso (Server-Verified)");
+      console.log("[storage] Login exitoso (servidor)");
       return found;
     }
     
