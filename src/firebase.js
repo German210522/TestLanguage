@@ -1,12 +1,9 @@
 // src/firebase.js
-// Inicialización de Firebase — las credenciales vienen de variables de entorno Vite
+// Inicialización de Firebase — Sincronización Directa 2.0
+// Se eliminó la persistencia en disco para asegurar integridad total entre dispositivos.
 
 import { initializeApp } from "firebase/app";
-import { 
-  initializeFirestore, 
-  persistentLocalCache, 
-  persistentMultipleTabManager 
-} from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -19,10 +16,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Caché Persistente para acceso offline inmediato + WebSockets nativos (máxima velocidad).
+// Conexión directa al servidor — Garantiza que todos los dispositivos vean lo mismo al instante.
 export const db = initializeFirestore(app, {
-  ignoreUndefinedProperties: true,
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  })
+  ignoreUndefinedProperties: true
 });

@@ -122,19 +122,11 @@ export async function deleteResult(docId) {
    USUARIOS
    ───────────────────────────────────────────────────────── */
 
-/** Obtiene todos los usuarios — Estrategia Híbrida (Caché -> Servidor) */
+/** Obtiene todos los usuarios — Conexión directa al servidor para integridad total */
 export async function getUsers() {
   try {
     const colRef = collection(db, COLL.USERS);
-    let snap;
-    try {
-      // Intentamos caché primero para velocidad instantánea
-      snap = await getDocsFromCache(colRef);
-      if (snap.empty) throw new Error("Cache empty");
-    } catch (e) {
-      // Si el caché está vacío o falla, vamos al servidor
-      snap = await getDocs(colRef);
-    }
+    const snap = await getDocs(colRef);
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
     console.error("[storage] getUsers error:", e);
@@ -152,39 +144,23 @@ export function subscribeUsers(callback, onError = null) {
   });
 }
 
-/** Busca un usuario para login — 'Instantáneo' (Caché primero, Servidor como respaldo) */
+/** Busca un usuario para login — Verificación directa en el servidor */
 export async function findUser(usernameOrEmail, password) {
   try {
     const term = usernameOrEmail.trim().toLowerCase();
     const pwd  = password.trim();
     const hashed = await hashPassword(pwd);
     
-    // 1. Intento Rápido (Caché)
     const colRef = collection(db, COLL.USERS);
-    let snap;
-    try {
-      snap = await getDocsFromCache(colRef);
-      const found = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(u => 
-        (u.username?.toLowerCase() === term || u.email?.toLowerCase() === term) &&
-        u.password === hashed && u.active === true
-      );
-      if (found) {
-        console.log("[storage] Login instantáneo (desde caché)");
-        return found;
-      }
-    } catch (e) { /* ignore cache error */ }
-
-    // 2. Intento de Respaldo (Servidor) — Por si es un usuario recién creado
-    console.log("[storage] Usuario no en caché, consultando servidor...");
-    snap = await getDocs(colRef);
-    const foundServer = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(u => 
+    const snap = await getDocs(colRef); // Pide datos frescos al servidor
+    const found = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(u => 
       (u.username?.toLowerCase() === term || u.email?.toLowerCase() === term) &&
       u.password === hashed && u.active === true
     );
 
-    if (foundServer) {
-      console.log("[storage] Login exitoso (desde servidor)");
-      return foundServer;
+    if (found) {
+      console.log("[storage] Login exitoso (Server-Verified)");
+      return found;
     }
     
     console.warn("[storage] Credenciales inválidas o usuario inactivo.");
