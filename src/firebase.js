@@ -1,13 +1,8 @@
 // src/firebase.js
-// Inicialización de Firebase — Caché local + Sync en tiempo real
-// La caché da velocidad instantánea; onSnapshot mantiene datos frescos.
+// Inicialización de Firebase sin persistencia para evitar bloqueos en Brave
 
 import { initializeApp } from "firebase/app";
-import {
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager
-} from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -20,11 +15,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Caché persistente para carga instantánea + soporte multi-pestaña.
-// onSnapshot en Dashboard/storage.js sincroniza datos en tiempo real.
-export const db = initializeFirestore(app, {
-  ignoreUndefinedProperties: true,
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  })
-});
+// Desactivamos la caché persistente (IndexedDB) para evitar bloqueos infinitos
+// en navegadores como Brave y asegurar la sincronización en tiempo real.
+export const db = getFirestore(app);
