@@ -9,6 +9,19 @@
   padding: 0;
 }
 
+/* ── Modo Noche Óptico ──────────────────────────────────── */
+/* Invierte toda la interfaz sutilmente para crear un Dark Mode perfecto sin alterar las clases internas */
+html.dark-mode {
+  filter: invert(0.92) hue-rotate(180deg);
+  background: white; /* Invertido se verá como gris oscuro/negro */
+}
+/* Revertir las ilustraciones, emojis e imágenes para que no se vean como negativos de fotos */
+html.dark-mode img, 
+html.dark-mode video,
+html.dark-mode .credits-brand-logo {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 /* ── Animaciones ─────────────────────────────────────────── */
 .fade-in  { animation: fadeIn  .45s ease-out both; }
 .slide-up { animation: slideUp .35s cubic-bezier(.22,.68,0,1.2) both; }
