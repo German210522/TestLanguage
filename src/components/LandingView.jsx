@@ -12,7 +12,7 @@ const FIELD_CFG = [
   { k: "municipality", l: "Municipio",              t: "text",  ph: "Ej. Huehuetenango",            max: 80  },
 ];
 
-export default function LandingView({ onStart, onOpenAuth }) {
+export default function LandingView({ onStart, onOpenAuth, onOpenTerms }) {
   const [info, setInfo]     = useState({ name: "", email: "", institution: "", municipality: "" });
   const [errors, setErrors] = useState({});
 
@@ -60,6 +60,16 @@ export default function LandingView({ onStart, onOpenAuth }) {
             }} />
 
             <div style={{ textAlign: "center", position: "relative" }}>
+              {/* Logo institucional */}
+              <img
+                src="/usac_logo.png"
+                alt="USAC - CUNOROC"
+                style={{
+                  width: 240, height: "auto", borderRadius: 14,
+                  marginBottom: 16, filter: "brightness(1.15)",
+                  border: "2px solid rgba(255,255,255,.15)",
+                }}
+              />
               {/* Etiqueta superior */}
               <div style={{
                 fontSize: 10, letterSpacing: 3, color: "#93c5fd", fontWeight: 700,
@@ -78,7 +88,7 @@ export default function LandingView({ onStart, onOpenAuth }) {
               >
                 Evaluación de Lenguaje
               </h1>
-              <p style={{ color: "#bfdbfe", fontSize: 14 }}>Español Latinoamericano</p>
+              <p style={{ color: "#bfdbfe", fontSize: 14 }}>Español</p>
 
               {/* Stats pills */}
               <div
@@ -147,6 +157,32 @@ export default function LandingView({ onStart, onOpenAuth }) {
               Comenzar Evaluación →
             </button>
 
+            {/* Aviso de términos y privacidad */}
+            <p style={{ textAlign: "center", fontSize: 11, color: "#94a3b8", marginTop: 12, lineHeight: 1.6 }}>
+              Al continuar, aceptas nuestros{" "}
+              <button
+                onClick={() => onOpenTerms("terms")}
+                style={{
+                  background: "none", border: "none", color: "#4f46e5",
+                  fontSize: 11, cursor: "pointer", textDecoration: "underline",
+                  fontFamily: "'Lato',sans-serif", padding: 0, fontWeight: 600,
+                }}
+              >
+                Términos de Servicio
+              </button>
+              {" "}y{" "}
+              <button
+                onClick={() => onOpenTerms("privacy")}
+                style={{
+                  background: "none", border: "none", color: "#4f46e5",
+                  fontSize: 11, cursor: "pointer", textDecoration: "underline",
+                  fontFamily: "'Lato',sans-serif", padding: 0, fontWeight: 600,
+                }}
+              >
+                Política de Privacidad
+              </button>
+            </p>
+
             {/* Enlace de acceso docente (Botón más prominente para móvil) */}
             <div style={{ textAlign: "center", marginTop: 22 }}>
               <button
@@ -185,7 +221,7 @@ export default function LandingView({ onStart, onOpenAuth }) {
           </div>
         </div>
       </div>
-      <CreditsBar />
+      <CreditsBar onOpenTerms={onOpenTerms} />
     </>
   );
 }

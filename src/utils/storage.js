@@ -36,6 +36,26 @@ const COLL = {
   RESULTS: "results",
 };
 
+/* ── Compresión de respuestas ───────────────────────────── */
+/**
+ * Comprime un array de respuestas a un string compacto.
+ * Cada respuesta es un dígito (0-3) o 'x' para null.
+ * Ej: [0, 2, null, 1, 3] → "02x13"
+ */
+export function compressAnswers(answers) {
+  return answers.map(a => a === null ? 'x' : String(a)).join('');
+}
+
+/**
+ * Descomprime un string de respuestas a un array.
+ * "02x13" → [0, 2, null, 1, 3]
+ */
+export function decompressAnswers(str) {
+  if (Array.isArray(str)) return str; // Ya es array (datos legacy)
+  if (!str || typeof str !== 'string') return [];
+  return str.split('').map(c => c === 'x' ? null : parseInt(c, 10));
+}
+
 /* ══ SuperAdmin por defecto ════════════════════════════════
    Se crea automáticamente si la colección de usuarios está vacía.
    ═══════════════════════════════════════════════════════════ */
@@ -94,15 +114,14 @@ export function subscribeResults(callback, onError = null) {
 export async function createPendingResult(info) {
   try {
     const pendingData = {
-      id: Date.now().toString(),
-      name: info.name || "",
-      email: info.email || "",
-      institution: info.institution || "",
-      municipality: info.municipality || "",
+      name: (info.name || "").slice(0, 60),
+      email: (info.email || "").slice(0, 80),
+      institution: (info.institution || "").slice(0, 80),
+      municipality: (info.municipality || "").slice(0, 80),
       score: 0,
       pct: 0,
       grade: "—",
-      answers: [],
+      answers: "",
       status: "En Proceso",
       timestamp: new Date().toISOString(),
     };
@@ -138,9 +157,14 @@ export async function completeResult(docId, resultData) {
 export async function addResult(result) {
   try {
     const cleanResult = {
-      ...result,
+      name: (result.name || "").slice(0, 60),
+      email: (result.email || "").slice(0, 80),
+      institution: (result.institution || "").slice(0, 80),
+      municipality: (result.municipality || "").slice(0, 80),
       score: Number(result.score || 0),
       pct: Number(result.pct || 0),
+      grade: result.grade || "",
+      answers: result.answers || "",
       status: result.status || "Finalizado",
       timestamp: result.timestamp || new Date().toISOString()
     };

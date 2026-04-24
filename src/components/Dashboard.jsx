@@ -7,7 +7,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { subscribeResults, deleteResult, subscribeUsers, addUser, toggleUserActive, deleteUser } from "../utils/storage";
-import { TOTAL as QUESTIONS_TOTAL } from "../data/questions";
+import { QUIZ_SIZE } from "../data/questions";
 import { exportResultsCSV } from "../utils/exportCsv";
 import CreditsBar from "./CreditsBar";
 
@@ -211,9 +211,25 @@ export default function Dashboard({ currentUser, onLogout }) {
           flexDirection: "column", padding: "20px 14px", position: "sticky",
           top: 0, height: "100vh", overflowY: "auto",
         }}>
-          <div style={{ marginBottom: 28, paddingBottom: 20, borderBottom: "1px solid #1e293b" }}>
-            <div style={{ fontFamily: "'Playfair Display',serif", color: "white", fontSize: 17, marginBottom: 2 }}>Panel Administrativo</div>
-            <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1.2, textTransform: "uppercase" }}>Evaluación de Lenguaje</div>
+          <div style={{ marginBottom: 28, paddingBottom: 20, borderBottom: "1px solid #1e293b", textAlign: "center" }}>
+            <img
+              src="/usac_logo.png"
+              alt="USAC - CUNOROC"
+              className="db-sidebar-logo"
+              style={{
+                width: "100%", maxWidth: 200, height: "auto",
+                borderRadius: 12, marginBottom: 12,
+                filter: "brightness(1.1)",
+              }}
+            />
+            <div className="db-sidebar-label" style={{ fontSize: 11, color: "#93c5fd", fontWeight: 800, letterSpacing: .8, textTransform: "uppercase", lineHeight: 1.4, marginBottom: 5 }}>
+              CUNOROC
+            </div>
+            <div className="db-sidebar-label" style={{ fontSize: 10, color: "#94a3b8", lineHeight: 1.4 }}>
+              Sede de Pedagogía<br />Santa Eulalia, Huehuetenango
+            </div>
+            <div className="db-sidebar-label" style={{ marginTop: 12, fontFamily: "'Playfair Display',serif", color: "white", fontSize: 15, lineHeight: 1.3 }}>Panel Administrativo</div>
+            <div className="db-sidebar-label" style={{ fontSize: 10, color: "#475569", letterSpacing: 1.2, textTransform: "uppercase", marginTop: 4 }}>Evaluación de Lenguaje</div>
           </div>
 
           {navItems.map(({ id, icon, label }) => (
@@ -395,7 +411,7 @@ export default function Dashboard({ currentUser, onLogout }) {
                             <td style={{ color: "#64748b" }}>{r.email}</td>
                             <td>{r.institution}</td>
                             <td>{r.municipality}</td>
-                            <td style={{ fontWeight: 700 }}>{r.status === "En Proceso" ? "—" : `${r.score}/${QUESTIONS_TOTAL}`}</td>
+                            <td style={{ fontWeight: 700 }}>{r.status === "En Proceso" ? "—" : `${r.score}/${QUIZ_SIZE}`}</td>
                             <td>
                               {r.status === "En Proceso"
                                 ? <span style={{ color: "#94a3b8", fontStyle: "italic" }}>—</span>

@@ -18,7 +18,8 @@ html.dark-mode {
 /* Revertir las ilustraciones, emojis e imágenes para que no se vean como negativos de fotos */
 html.dark-mode img, 
 html.dark-mode video,
-html.dark-mode .credits-brand-logo {
+html.dark-mode .credits-brand-logo,
+html.dark-mode .db-sidebar-logo {
   filter: invert(1) hue-rotate(180deg);
 }
 

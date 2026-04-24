@@ -36,7 +36,15 @@ export default function AuthModal({ onClose, onLogin }) {
       }}>
         {/* Header */}
         <div style={{ background: "linear-gradient(135deg,#1e3a8a,#4f46e5,#7c3aed)", padding: "28px", textAlign: "center" }}>
-          <div style={{ fontSize: 36, marginBottom: 8 }}>🔐</div>
+          <img
+            src="/usac_logo.png"
+            alt="USAC - CUNOROC"
+            style={{
+              width: 160, height: "auto", borderRadius: 12,
+              marginBottom: 12, filter: "brightness(1.15)",
+              border: "2px solid rgba(255,255,255,.15)",
+            }}
+          />
           <h3 style={{ fontFamily: "'Playfair Display',serif", color: "white", fontSize: 22, marginBottom: 4 }}>
             Acceso Personal
           </h3>

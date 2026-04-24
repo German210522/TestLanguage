@@ -2,11 +2,11 @@
 // Pantalla de resultados — responsive para todos los dispositivos
 
 import { getGrade, getFeedback, calcScore } from "../utils/grading";
-import { QUESTIONS } from "../data/questions";
+import { QUIZ_SIZE } from "../data/questions";
 import CreditsBar from "./CreditsBar";
 
-export default function ResultsView({ info, answers, onReset, onOpenAuth, onOpenDashboard, currentUser }) {
-  const { score, pct, unanswered, wrong } = calcScore(answers, QUESTIONS);
+export default function ResultsView({ info, answers, onReset, onOpenAuth, onOpenDashboard, currentUser, questions }) {
+  const { score, pct, unanswered, wrong } = calcScore(answers, questions);
   const grade    = getGrade(pct);
   const feedback = getFeedback(pct);
 
@@ -39,7 +39,7 @@ export default function ResultsView({ info, answers, onReset, onOpenAuth, onOpen
                 {pct}%
               </div>
               <div style={{ fontSize: 15, color: "#bfdbfe", marginTop: 6, fontWeight: 600 }}>
-                {score} de {QUESTIONS.length} respuestas correctas
+                {score} de {QUIZ_SIZE} respuestas correctas
               </div>
               <div style={{
                 marginTop: 14, display: "inline-block",

@@ -11,6 +11,7 @@ import LandingView  from "./components/LandingView";
 import QuizView     from "./components/QuizView";
 import ResultsView  from "./components/ResultsView";
 import Dashboard    from "./components/Dashboard";
+import TermsPrivacy from "./components/TermsPrivacy";
 
 import "./styles/globals.css";
 
@@ -25,6 +26,7 @@ export default function App() {
     timesUp,
     currentUser,
     showAuth,
+    quizQuestions,
     setShowAuth,
     handleStart,
     handleSelect,
@@ -40,6 +42,12 @@ export default function App() {
     initDB().catch(e => console.warn("[App] initDB falló:", e));
     seedDemoData().catch(e => console.warn("[App] seedData falló:", e));
   }, []);
+
+  // Modal de Términos y Privacidad
+  const [showTerms, setShowTerms] = useState(false);
+  const [termsTab, setTermsTab]   = useState("terms");
+
+  const openTerms = (tab = "terms") => { setTermsTab(tab); setShowTerms(true); };
 
   // Modo noche (Manejo de estado y persistencia)
   const [darkMode, setDarkMode] = useState(() => {
@@ -99,11 +107,20 @@ export default function App() {
         />
       )}
 
+      {/* Modal de Términos y Política de Privacidad */}
+      {showTerms && (
+        <TermsPrivacy
+          initialTab={termsTab}
+          onClose={() => setShowTerms(false)}
+        />
+      )}
+
       {/* ── Fase: inicio */}
       {phase === "landing" && (
         <LandingView
           onStart={handleStart}
           onOpenAuth={() => setShowAuth(true)}
+          onOpenTerms={openTerms}
         />
       )}
 
@@ -117,6 +134,7 @@ export default function App() {
           timesUp={timesUp}
           onSelect={handleSelect}
           onAdvance={handleAdvance}
+          questions={quizQuestions}
         />
       )}
 
@@ -129,6 +147,7 @@ export default function App() {
           onReset={handleReset}
           onOpenAuth={() => setShowAuth(true)}
           onOpenDashboard={() => setPhase("dashboard")}
+          questions={quizQuestions}
         />
       )}
 

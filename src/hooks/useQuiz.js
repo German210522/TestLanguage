@@ -2,9 +2,10 @@
 // Hook personalizado que encapsula toda la lógica del cuestionario
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { QUESTIONS, TOTAL, TIME_PER_QUESTION } from "../data/questions";
+import { QUESTIONS, QUIZ_SIZE, TIME_PER_QUESTION } from "../data/questions";
+import { prepareQuiz } from "../utils/shuffleQuiz";
 import { calcScore, getGrade } from "../utils/grading";
-import { addResult, createPendingResult, completeResult } from "../utils/storage";
+import { addResult, createPendingResult, completeResult, compressAnswers } from "../utils/storage";
 
 /**
  * Fases posibles de la aplicación:
@@ -13,13 +14,16 @@ import { addResult, createPendingResult, completeResult } from "../utils/storage
 export function useQuiz() {
   const [phase, setPhase]         = useState("landing");
   const [studentInfo, setStudentInfo] = useState({ name: "", email: "", institution: "", municipality: "" });
-  const [answers, setAnswers]     = useState(() => Array(TOTAL).fill(null));
-  const [locked, setLocked]       = useState(() => Array(TOTAL).fill(false));
+  const [answers, setAnswers]     = useState(() => Array(QUIZ_SIZE).fill(null));
+  const [locked, setLocked]       = useState(() => Array(QUIZ_SIZE).fill(false));
   const [qIdx, setQIdx]           = useState(0);
   const [timeLeft, setTimeLeft]   = useState(TIME_PER_QUESTION);
   const [timesUp, setTimesUp]     = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showAuth, setShowAuth]   = useState(false);
+
+  // Preguntas aleatorizadas para la sesión actual
+  const [quizQuestions, setQuizQuestions] = useState(() => prepareQuiz(QUESTIONS, QUIZ_SIZE));
 
   // Ref para guardar el ID del documento pendiente ("En Proceso")
   const pendingDocRef = useRef(null);
@@ -27,14 +31,14 @@ export function useQuiz() {
   /* ── Guardar resultado y avanzar a results ─────────── */
   const finishRef = useRef(null);
   finishRef.current = useCallback(() => {
-    const { score, pct } = calcScore(answers, QUESTIONS);
+    const { score, pct } = calcScore(answers, quizQuestions);
     const grade = getGrade(pct);
 
     const resultData = {
       score,
       pct,
       grade: grade.label,
-      answers: [...answers],
+      answers: compressAnswers(answers),
     };
 
     // Si tenemos un doc pendiente, lo actualizamos a "Finalizado"
@@ -46,7 +50,6 @@ export function useQuiz() {
           console.error("[quiz] Error completando resultado, creando nuevo:", e);
           // Fallback: crear doc nuevo si la actualización falla
           addResult({
-            id: Date.now().toString(),
             ...studentInfo,
             ...resultData,
             status: "Finalizado",
@@ -55,7 +58,6 @@ export function useQuiz() {
         });
     } else {
       addResult({
-        id: Date.now().toString(),
         ...studentInfo,
         ...resultData,
         status: "Finalizado",
@@ -66,12 +68,12 @@ export function useQuiz() {
     try { localStorage.setItem("last_sub", Date.now().toString()); } catch(e){}
     pendingDocRef.current = null;
     setPhase("results");
-  }, [answers, studentInfo]);
+  }, [answers, studentInfo, quizQuestions]);
 
   /* ── Avanzar pregunta (o terminar) ─────────────────── */
   const advanceRef = useRef(null);
   advanceRef.current = useCallback(() => {
-    if (qIdx >= TOTAL - 1) finishRef.current();
+    if (qIdx >= QUIZ_SIZE - 1) finishRef.current();
     else setQIdx(i => i + 1);
   }, [qIdx]);
 
@@ -101,7 +103,7 @@ export function useQuiz() {
     setAnswers(prev => { const a = [...prev]; a[qIdx] = optionIndex; return a; });
     setLocked(prev  => { const l = [...prev]; l[qIdx] = true;        return l; });
     // Auto-avance despues de mostrar la validación visual, excepto en la ultima pregunta
-    if (qIdx < TOTAL - 1) {
+    if (qIdx < QUIZ_SIZE - 1) {
       setTimeout(() => {
         advanceRef.current();
       }, 1500);
@@ -116,6 +118,14 @@ export function useQuiz() {
       return;
     }
     setStudentInfo(info);
+
+    // Generar nueva aleatorización: 50 preguntas aleatorias del banco de 57, con opciones mezcladas
+    const shuffled = prepareQuiz(QUESTIONS, QUIZ_SIZE);
+    setQuizQuestions(shuffled);
+    setAnswers(Array(QUIZ_SIZE).fill(null));
+    setLocked(Array(QUIZ_SIZE).fill(false));
+    setQIdx(0);
+
     setPhase("quiz");
 
     // Crear registro "En Proceso" en Firestore (visible en tiempo real para admin)
@@ -134,9 +144,11 @@ export function useQuiz() {
   const handleReset = () => {
     setPhase("landing");
     setQIdx(0);
-    setAnswers(Array(TOTAL).fill(null));
-    setLocked(Array(TOTAL).fill(false));
+    setAnswers(Array(QUIZ_SIZE).fill(null));
+    setLocked(Array(QUIZ_SIZE).fill(false));
     setStudentInfo({ name: "", email: "", institution: "", municipality: "" });
+    // Preparar nueva aleatorización para la próxima sesión
+    setQuizQuestions(prepareQuiz(QUESTIONS, QUIZ_SIZE));
     pendingDocRef.current = null;
   };
 
@@ -154,6 +166,7 @@ export function useQuiz() {
     timesUp,
     currentUser,
     showAuth,
+    quizQuestions,
     setShowAuth,
     handleStart,
     handleSelect,

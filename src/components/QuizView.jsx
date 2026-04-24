@@ -3,10 +3,10 @@
 
 import TimerRing from "./TimerRing";
 import CreditsBar from "./CreditsBar";
-import { QUESTIONS, TOTAL, OPTION_LABELS } from "../data/questions";
+import { QUIZ_SIZE, OPTION_LABELS } from "../data/questions";
 
-export default function QuizView({ qIdx, answers, locked, timeLeft, timesUp, onSelect, onAdvance }) {
-  const q      = QUESTIONS[qIdx];
+export default function QuizView({ qIdx, answers, locked, timeLeft, timesUp, onSelect, onAdvance, questions }) {
+  const q      = questions[qIdx];
   const sel    = answers[qIdx];
   const isLock = locked[qIdx] || timesUp;
 
@@ -43,14 +43,14 @@ export default function QuizView({ qIdx, answers, locked, timeLeft, timesUp, onS
         <div style={{ width: "100%", maxWidth: 720, marginBottom: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
             <span style={{ color: "#7c86a1", fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>
-              Pregunta {qIdx + 1} de {TOTAL}
+              Pregunta {qIdx + 1} de {QUIZ_SIZE}
             </span>
             <span style={{ color: "#7c86a1", fontSize: 12 }}>
               {answers.filter(a => a !== null).length} respondida{answers.filter(a => a !== null).length !== 1 ? "s" : ""}
             </span>
           </div>
           <div className="pbar">
-            <div className="pfill" style={{ width: `${(qIdx / TOTAL) * 100}%` }} />
+            <div className="pfill" style={{ width: `${(qIdx / QUIZ_SIZE) * 100}%` }} />
           </div>
         </div>
 
@@ -77,7 +77,7 @@ export default function QuizView({ qIdx, answers, locked, timeLeft, timesUp, onS
                 <div style={{ fontSize: 10, color: "#94a3b8", letterSpacing: 1, textTransform: "uppercase", fontWeight: 700 }}>
                   Evaluación de Lenguaje
                 </div>
-                <div style={{ fontSize: 11.5, color: "#64748b" }}>Español Latinoamericano</div>
+                <div style={{ fontSize: 11.5, color: "#64748b" }}>Español</div>
               </div>
             </div>
             <TimerRing timeLeft={timeLeft} />
@@ -125,7 +125,7 @@ export default function QuizView({ qIdx, answers, locked, timeLeft, timesUp, onS
             </div>
 
             {/* Botón final: Aparece si se seleccionó respuesta o se acabó el tiempo en la última pregunta */}
-            {(sel !== null || timesUp) && qIdx === TOTAL - 1 && (
+            {(sel !== null || timesUp) && qIdx === QUIZ_SIZE - 1 && (
               <div style={{ marginTop: 22, display: "flex", justifyContent: "flex-end", animation: "fadeIn 0.4s ease" }}>
                 <button 
                   className="btn-primary" 

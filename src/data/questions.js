@@ -60,6 +60,7 @@ export const QUESTIONS = [
   { q: "En el proceso de comunicación, ¿cuál afirmación es correcta?", opts: ["El ruido solo puede ser de tipo sonoro","El receptor codifica el mensaje para enviarlo","El emisor produce y envía el mensaje al receptor","El canal es el contenido mismo del mensaje"], correct: 2 },
 ];
 
-export const TOTAL = QUESTIONS.length;
-export const TIME_PER_QUESTION = 60; // segundos
+export const TOTAL = QUESTIONS.length;        // Banco total de preguntas (57)
+export const QUIZ_SIZE = 50;                   // Preguntas por sesión de examen
+export const TIME_PER_QUESTION = 60;           // segundos por pregunta
 export const OPTION_LABELS = ["A", "B", "C", "D"];

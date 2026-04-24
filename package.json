@@ -2,6 +2,7 @@
   "name": "evaluacion-lenguaje",
   "version": "1.0.0",
   "private": true,
+  "license": "UNLICENSED",
   "description": "Evaluación de Lenguaje Español Latinoamericano — Nivel Diversificado",
   "scripts": {
     "dev": "vite",
