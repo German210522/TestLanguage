@@ -8,12 +8,13 @@ import CreditsBar from "./CreditsBar";
 const FIELD_CFG = [
   { k: "name",         l: "Nombre completo",       t: "text",  ph: "Ej. María López García",       max: 100 },
   { k: "email",        l: "Correo electrónico",     t: "email", ph: "Ej. maria@correo.com",          max: 120 },
+  { k: "phone",        l: "Número de teléfono",     t: "tel",   ph: "Ej. 45678912",                 max: 8 },
   { k: "institution",  l: "Institución educativa",  t: "text",  ph: "Ej. Instituto Nacional de...", max: 120 },
   { k: "municipality", l: "Municipio",              t: "text",  ph: "Ej. Huehuetenango",            max: 80  },
 ];
 
 export default function LandingView({ onStart, onOpenAuth, onOpenTerms }) {
-  const [info, setInfo]     = useState({ name: "", email: "", institution: "", municipality: "" });
+  const [info, setInfo]     = useState({ name: "", email: "", phone: "", institution: "", municipality: "", career: "", customCareer: "" });
   const [errors, setErrors] = useState({});
 
   const handleStart = () => {
@@ -140,6 +141,50 @@ export default function LandingView({ onStart, onOpenAuth, onOpenTerms }) {
               </div>
             ))}
 
+            {/* Selector de Carrera */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={lbl}>¿Qué carrera aspira seguir?</label>
+              <select
+                className={errors.career ? "inp-err" : ""}
+                style={{
+                  width: "100%", padding: "12px", borderRadius: 8, border: "1px solid #cbd5e1",
+                  fontSize: 14, fontFamily: "'Lato',sans-serif", background: "#f8fafc", outline: "none",
+                  transition: "all .2s ease"
+                }}
+                value={info.career}
+                onChange={e => setInfo(p => ({ ...p, career: e.target.value }))}
+              >
+                <option value="">-- Selecciona una opción --</option>
+                <option value="Profesorado en Pedagogía">Profesorado en Pedagogía</option>
+                <option value="Licenciatura en Pedagogía y Administración Educativa">Licenciatura en Pedagogía y Administración Educativa</option>
+                <option value="Ciencias Jurídicas y Sociales (Derecho)">Ciencias Jurídicas y Sociales (Derecho)</option>
+                <option value="Trabajo Social">Trabajo Social</option>
+                <option value="Ingeniería Agrónoma">Ingeniería Agrónoma</option>
+                <option value="-Otros-">-Otros-</option>
+              </select>
+              {errors.career && (
+                <p style={{ color: "#dc2626", fontSize: 12, marginTop: 4 }}>⚠ {errors.career}</p>
+              )}
+            </div>
+
+            {info.career === "-Otros-" && (
+              <div className="fade-in" style={{ marginBottom: 14 }}>
+                <label style={lbl}>Especifica tu carrera</label>
+                <input
+                  type="text"
+                  placeholder="Ej. Medicina"
+                  value={info.customCareer || ""}
+                  maxLength={100}
+                  className={errors.customCareer ? "inp-err" : ""}
+                  onChange={e => setInfo(p => ({ ...p, customCareer: e.target.value }))}
+                  onKeyDown={e => e.key === "Enter" && handleStart()}
+                />
+                {errors.customCareer && (
+                  <p style={{ color: "#dc2626", fontSize: 12, marginTop: 4 }}>⚠ {errors.customCareer}</p>
+                )}
+              </div>
+            )}
+
             {/* Botón principal */}
             <button
               style={{
@@ -157,7 +202,8 @@ export default function LandingView({ onStart, onOpenAuth, onOpenTerms }) {
               Comenzar Evaluación →
             </button>
 
-            {/* Aviso de términos y privacidad */}
+            {/* Aviso de términos y privacidad - Oculto de momento */}
+            {/* 
             <p style={{ textAlign: "center", fontSize: 11, color: "#94a3b8", marginTop: 12, lineHeight: 1.6 }}>
               Al continuar, aceptas nuestros{" "}
               <button
@@ -182,6 +228,7 @@ export default function LandingView({ onStart, onOpenAuth, onOpenTerms }) {
                 Política de Privacidad
               </button>
             </p>
+            */}
 
             {/* Enlace de acceso docente (Botón más prominente para móvil) */}
             <div style={{ textAlign: "center", marginTop: 22 }}>

@@ -110,7 +110,7 @@ export default function ResultsView({ info, answers, onReset, onOpenAuth, onOpen
                 ↩ Nueva Evaluación
               </button>
 
-              {currentUser ? (
+              {currentUser && (
                 <button
                   style={{
                     flex: 1, minWidth: 140, padding: "12px", background: "white", color: "#4f46e5",
@@ -120,17 +120,6 @@ export default function ResultsView({ info, answers, onReset, onOpenAuth, onOpen
                   onClick={onOpenDashboard}
                 >
                   📊 Ver Panel Admin
-                </button>
-              ) : (
-                <button
-                  style={{
-                    flex: 1, minWidth: 140, padding: "12px", background: "white", color: "#475569",
-                    border: "2px solid #e2e8f0", borderRadius: 11, fontSize: 13, fontWeight: 600,
-                    cursor: "pointer", fontFamily: "'Lato',sans-serif",
-                  }}
-                  onClick={onOpenAuth}
-                >
-                  🔐 Acceso Docentes
                 </button>
               )}
             </div>

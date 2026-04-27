@@ -114,8 +114,12 @@ export function subscribeResults(callback, onError = null) {
 export async function createPendingResult(info) {
   try {
     const pendingData = {
+      id: Date.now().toString(),
       name: (info.name || "").slice(0, 60),
       email: (info.email || "").slice(0, 80),
+      phone: (info.phone || "").slice(0, 20),
+      career: (info.career || "").slice(0, 100),
+      customCareer: (info.customCareer || "").slice(0, 100),
       institution: (info.institution || "").slice(0, 80),
       municipality: (info.municipality || "").slice(0, 80),
       score: 0,
@@ -157,8 +161,12 @@ export async function completeResult(docId, resultData) {
 export async function addResult(result) {
   try {
     const cleanResult = {
+      id: result.id || Date.now().toString(),
       name: (result.name || "").slice(0, 60),
       email: (result.email || "").slice(0, 80),
+      phone: (result.phone || "").slice(0, 20),
+      career: (result.career || "").slice(0, 100),
+      customCareer: (result.customCareer || "").slice(0, 100),
       institution: (result.institution || "").slice(0, 80),
       municipality: (result.municipality || "").slice(0, 80),
       score: Number(result.score || 0),

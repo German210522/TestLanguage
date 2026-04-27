@@ -396,7 +396,7 @@ export default function Dashboard({ currentUser, onLogout }) {
                     <table className="data-table">
                       <thead>
                         <tr>
-                          {["#", "Nombre", "Correo", "Institución", "Municipio", "Punteo", "%", "Calificación", "Estatus", "Fecha", ...(currentUser.id === "superadmin" ? [""] : [])].map((h, i) => (
+                          {["#", "Nombre", "Contacto", "Institución / Carrera", "Municipio", "Punteo", "%", "Calificación", "Estatus", "Fecha", ...(currentUser.id === "superadmin" ? [""] : [])].map((h, i) => (
                             <th key={h || `empty_${i}`}>{h}</th>
                           ))}
                         </tr>
@@ -408,8 +408,14 @@ export default function Dashboard({ currentUser, onLogout }) {
                           <tr key={r._docId || r.id}>
                             <td style={{ color: "#94a3b8", fontSize: 12 }}>{i + 1}</td>
                             <td style={{ fontWeight: 600 }}>{r.name}</td>
-                            <td style={{ color: "#64748b" }}>{r.email}</td>
-                            <td>{r.institution}</td>
+                            <td>
+                              <div style={{ color: "#64748b" }}>{r.email}</div>
+                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{r.phone || "Sin teléfono"}</div>
+                            </td>
+                            <td>
+                              <div>{r.institution}</div>
+                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{r.career === "-Otros-" ? r.customCareer : (r.career || "Sin carrera")}</div>
+                            </td>
                             <td>{r.municipality}</td>
                             <td style={{ fontWeight: 700 }}>{r.status === "En Proceso" ? "—" : `${r.score}/${QUIZ_SIZE}`}</td>
                             <td>

@@ -52,8 +52,20 @@ export function validateStudentForm(info) {
   if (!nameTrim)                                       errors.name = "Ingresa tu nombre completo";
   else if (nameTrim.length < 3)                        errors.name = "El nombre debe tener al menos 3 caracteres";
   else if (!/[a-záéíóúüñA-ZÁÉÍÓÚÜÑ]/.test(nameTrim))  errors.name = "El nombre debe contener letras";
+  
   if (!/\S+@\S+\.\S+/.test(info.email.trim()))         errors.email = "Correo electrónico inválido";
+  
+  const phoneDigits = info.phone ? info.phone.replace(/\D/g, '') : '';
+  if (!info.phone || !info.phone.trim())               errors.phone = "Ingresa tu número de teléfono";
+  else if (phoneDigits.length !== 8)                   errors.phone = "El teléfono debe tener 8 dígitos";
+  
   if (!info.institution.trim())                        errors.institution = "Ingresa tu institución";
   if (!info.municipality.trim())                       errors.municipality = "Ingresa tu municipio";
+  
+  if (!info.career || !info.career.trim())             errors.career = "Selecciona una carrera";
+  else if (info.career === "-Otros-" && (!info.customCareer || !info.customCareer.trim())) {
+    errors.customCareer = "Especifica tu carrera";
+  }
+
   return errors;
 }

@@ -14,7 +14,6 @@ export default function CreditsBar({ onOpenTerms }) {
         >
           <span className="credits-brand-logo">Jz.Dev</span>
         </a>
-        <span className="credits-brand-label">Desarrollo web</span>
       </div>
 
       {/* Centro */}
@@ -28,28 +27,19 @@ export default function CreditsBar({ onOpenTerms }) {
           <>
             <span className="credits-dot">•</span>
             <button
-              onClick={() => onOpenTerms("terms")}
+              onClick={() => onOpenTerms("info")}
               style={{
                 background: "none", border: "none", color: "#818cf8",
                 fontSize: 11, cursor: "pointer", fontFamily: "'Lato',sans-serif",
                 fontWeight: 600, padding: 0, textDecoration: "underline",
               }}
             >
-              Términos y Privacidad
+              Más Información
             </button>
           </>
         )}
       </div>
 
-      {/* Enlace portafolio */}
-      <a
-        href="https://german210522.github.io/PersonalWeb2/index.html#home"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="credits-link"
-      >
-        Ver portafolio →
-      </a>
     </div>
   );
 }

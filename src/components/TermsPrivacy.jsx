@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 
-export default function TermsPrivacy({ initialTab = "terms", onClose }) {
+export default function TermsPrivacy({ initialTab = "info", onClose }) {
   const [tab, setTab] = useState(initialTab);
 
   return (
@@ -35,7 +35,7 @@ export default function TermsPrivacy({ initialTab = "terms", onClose }) {
               Información Legal
             </div>
             <h2 style={{ fontSize: 18, fontWeight: 900, color: "white", fontFamily: "'Playfair Display',serif" }}>
-              {tab === "terms" ? "Términos de Servicio" : "Política de Privacidad"}
+              {tab === "terms" ? "Términos de Servicio" : tab === "privacy" ? "Política de Privacidad" : "Más Información"}
             </h2>
           </div>
           <button
@@ -50,11 +50,13 @@ export default function TermsPrivacy({ initialTab = "terms", onClose }) {
           </button>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs - Ocultos de momento */}
+        {/* 
         <div style={{ display: "flex", borderBottom: "2px solid #e2e8f0" }}>
           {[
-            { id: "terms", label: "📋 Términos de Servicio" },
-            { id: "privacy", label: "🔒 Política de Privacidad" },
+            { id: "info", label: "ℹ️ Resolución de Dudas" },
+            { id: "terms", label: "📋 Términos" },
+            { id: "privacy", label: "🔒 Privacidad" },
           ].map(({ id, label }) => (
             <button
               key={id}
@@ -74,13 +76,14 @@ export default function TermsPrivacy({ initialTab = "terms", onClose }) {
             </button>
           ))}
         </div>
+        */}
 
         {/* Content */}
         <div style={{
           padding: "22px 28px", overflowY: "auto", flex: 1,
           fontSize: 13.5, color: "#334155", lineHeight: 1.75,
         }}>
-          {tab === "terms" ? <TermsContent /> : <PrivacyContent />}
+          {tab === "terms" ? <TermsContent /> : tab === "privacy" ? <PrivacyContent /> : <InfoContent />}
         </div>
 
         {/* Footer */}
@@ -261,6 +264,51 @@ function PrivacyContent() {
       <p style={pStyle}>
         Esta política puede actualizarse periódicamente. Cualquier cambio se reflejará en
         esta página con la fecha de actualización correspondiente.
+      </p>
+    </>
+  );
+}
+
+/* ── Contenido: Más Información / Dudas ─────────────── */
+function InfoContent() {
+  const h3Style = { fontSize: 15, fontWeight: 800, color: "#0f172a", marginTop: 20, marginBottom: 8, fontFamily: "'Playfair Display',serif" };
+  const pStyle = { marginBottom: 12 };
+
+  return (
+    <>
+      <h3 style={{ ...h3Style, marginTop: 0 }}>Resolución de Dudas</h3>
+      <p style={pStyle}>
+        Si tienes algún problema técnico al ingresar tus datos, durante el examen, o si tienes alguna duda sobre las carreras disponibles en la Sede de Santa Eulalia, por favor comunícate con la secretaría para recibir asistencia:
+      </p>
+
+      <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "16px 20px", marginTop: 20, marginBottom: 20 }}>
+        <h4 style={{ fontSize: 14, fontWeight: 700, color: "#1e293b", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+          <span>👩‍💼</span> Atención y Soporte
+        </h4>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#eef2ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#4f46e5", fontSize: 16, flexShrink: 0 }}>
+            📞
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Teléfono / WhatsApp</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>+502 4577 4961</div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", color: "#16a34a", fontSize: 16, flexShrink: 0 }}>
+            ✉️
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Correo Electrónico</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#0f172a" }}>secretariocunorocse@gmail.com</div>
+          </div>
+        </div>
+      </div>
+
+      <p style={{ ...pStyle, color: "#64748b", fontSize: 12, fontStyle: "italic" }}>
+        * Si necesitas mayor orientación sobre tu carrera, puedes visitar la sede física en horarios hábiles.
       </p>
     </>
   );
