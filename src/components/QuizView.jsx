@@ -34,10 +34,11 @@ export default function QuizView({ qIdx, answers, locked, timeLeft, timesUp, onS
     <>
       <div style={{
         minHeight: "100vh",
-        paddingBottom: 64,
         background: "linear-gradient(160deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%)",
         display: "flex", flexDirection: "column", alignItems: "center",
-        justifyContent: "center", padding: "16px 12px", fontFamily: "'Lato',sans-serif",
+        justifyContent: "center", 
+        paddingTop: 40, paddingBottom: 84, paddingLeft: 12, paddingRight: 12,
+        fontFamily: "'Lato',sans-serif",
       }}>
         {/* Barra de progreso */}
         <div style={{ width: "100%", maxWidth: 720, marginBottom: 12 }}>

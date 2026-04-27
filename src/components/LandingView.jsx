@@ -32,10 +32,10 @@ export default function LandingView({ onStart, onOpenAuth, onOpenTerms }) {
     <>
       <div style={{
         minHeight: "100vh",
-        paddingBottom: 64,                 /* espacio para CreditsBar */
         background: "linear-gradient(160deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "20px 16px", fontFamily: "'Lato',sans-serif",
+        paddingTop: 40, paddingBottom: 84, paddingLeft: 16, paddingRight: 16,
+        fontFamily: "'Lato',sans-serif",
       }}>
         <div className="fade-in" style={{
           background: "white", borderRadius: 22, maxWidth: 560, width: "100%",
@@ -201,7 +201,41 @@ export default function LandingView({ onStart, onOpenAuth, onOpenTerms }) {
             >
               Comenzar Evaluación →
             </button>
-
+            {/* Enlace de dudas */}
+            <div style={{ textAlign: "center", marginTop: 12 }}>
+              <button
+                onClick={() => onOpenTerms("info")}
+                style={{
+                  background: "#f8fafc", 
+                  border: "1px solid #e2e8f0", 
+                  color: "#4f46e5", 
+                  fontSize: 12.5,
+                  padding: "10px 20px",
+                  borderRadius: 14,
+                  cursor: "pointer", 
+                  fontFamily: "'Lato',sans-serif",
+                  transition: "all .2s ease",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontWeight: 600,
+                  boxShadow: "0 2px 4px rgba(0,0,0,.03)"
+                }}
+                onMouseOver={e => {
+                  e.currentTarget.style.color = "#4338ca";
+                  e.currentTarget.style.borderColor = "#c7d2fe";
+                  e.currentTarget.style.background = "#eff6ff";
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.color = "#4f46e5";
+                  e.currentTarget.style.borderColor = "#e2e8f0";
+                  e.currentTarget.style.background = "#f8fafc";
+                }}
+              >
+                <span>ℹ️</span>
+                <span>¿Tienes dudas? Más Información</span>
+              </button>
+            </div>
             {/* Aviso de términos y privacidad - Oculto de momento */}
             {/* 
             <p style={{ textAlign: "center", fontSize: 11, color: "#94a3b8", marginTop: 12, lineHeight: 1.6 }}>
@@ -229,9 +263,8 @@ export default function LandingView({ onStart, onOpenAuth, onOpenTerms }) {
               </button>
             </p>
             */}
-
             {/* Enlace de acceso docente (Botón más prominente para móvil) */}
-            <div style={{ textAlign: "center", marginTop: 22 }}>
+            <div style={{ textAlign: "center", marginTop: 12 }}>
               <button
                 onClick={onOpenAuth}
                 style={{
@@ -268,7 +301,7 @@ export default function LandingView({ onStart, onOpenAuth, onOpenTerms }) {
           </div>
         </div>
       </div>
-      <CreditsBar onOpenTerms={onOpenTerms} />
+      <CreditsBar />
     </>
   );
 }

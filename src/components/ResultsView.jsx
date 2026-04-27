@@ -14,10 +14,10 @@ export default function ResultsView({ info, answers, onReset, onOpenAuth, onOpen
     <>
       <div style={{
         minHeight: "100vh",
-        paddingBottom: 64,
         background: "linear-gradient(160deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "20px 16px", fontFamily: "'Lato',sans-serif",
+        paddingTop: 40, paddingBottom: 84, paddingLeft: 16, paddingRight: 16,
+        fontFamily: "'Lato',sans-serif",
       }}>
         <div className="fade-in" style={{
           background: "white", borderRadius: 22, maxWidth: 600, width: "100%",
