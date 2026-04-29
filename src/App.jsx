@@ -37,10 +37,9 @@ export default function App() {
     setPhase,
   } = useQuiz();
 
-  // Inicializar base de datos + datos demo (fire-and-forget, no bloquea UI)
+  // Inicializar base de datos (fire-and-forget, no bloquea UI)
   useEffect(() => {
     initDB().catch(e => console.warn("[App] initDB falló:", e));
-    seedDemoData().catch(e => console.warn("[App] seedData falló:", e));
   }, []);
 
   // Modal de Términos y Privacidad
